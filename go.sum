@@ -1,0 +1,6 @@
+github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5 h1:bBmmB7he0iVN4m5mcehfheeRUEer/Avo4ujnxI3uCqs=
+github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5/go.mod h1:0UcFaCkhp6vZw6l5Dpq0Dp673CoF9GdvA8lTfst0GiU=
+github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+golang.org/x/sys v0.0.0-20220111092808-5a964db01320 h1:0jf+tOCoZ3LyutmCOWpVni1chK4VfFLhRsDK7MhqGRY=
+golang.org/x/sys v0.0.0-20220111092808-5a964db01320/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
