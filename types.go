@@ -62,6 +62,7 @@ type PartialResponse struct {
 		Messages *[]struct {
 			Author string `json:"author"`
 			Text   string `json:"text"`
+			Type   string `json:"messageType"`
 		} `json:"messages"`
 	} `json:"item"`
 
