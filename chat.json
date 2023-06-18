@@ -13,6 +13,19 @@
     "autosave",
     "gencontentv3"
   ],
+  "allowedMessageTypes":[
+    "ActionRequest",
+    "Chat",
+    "Context",
+    "InternalSearchQuery",
+    "InternalSearchResult",
+    "Disengaged",
+    "InternalLoaderMessage",
+    "Progress",
+    "RenderCardRequest",
+    "SemanticSerp",
+    "SearchQuery"
+  ],
   "sliceIds":[],
   "verbosity":"verbose",
   "traceId":"648d851d68f547239e9d458285edae5d",
