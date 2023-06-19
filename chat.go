@@ -167,13 +167,13 @@ func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan P
 			c.Session.InvocationId++
 			messages := response.Item.Messages
 			if messages != nil && len(*messages) > 1 {
-				text := ""
+				var texts []string
 				for _, item := range *messages {
 					if item.Author == "bot" {
-						text += item.Text
+						texts = append(texts, item.Text)
 					}
 				}
-				response.Text = text
+				response.Text = strings.Join(texts, "\n")
 				message <- response
 			}
 			return true
