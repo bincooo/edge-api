@@ -68,9 +68,9 @@ func NewChat(opt Options) *Chat {
 	return &chat
 }
 
-func (c *Chat) Reply(ctx context.Context, prompt string) (chan PartialResponse, error) {
+func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[string]string) (chan PartialResponse, error) {
 	c.mu.Lock()
-	if c.Session.ConversationId == "" {
+	if c.Session.ConversationId == "" || c.Model == Sydney {
 		conv, err := c.newConversation()
 		if err != nil {
 			c.mu.Unlock()
@@ -79,7 +79,7 @@ func (c *Chat) Reply(ctx context.Context, prompt string) (chan PartialResponse, 
 		c.Session = *conv
 	}
 
-	h, err := newHub(c.Model, c.Session, prompt)
+	h, err := newHub(c.Model, c.Session, prompt, previousMessages)
 	if err != nil {
 		c.mu.Unlock()
 		return nil, err
@@ -114,7 +114,7 @@ func (c *Chat) Reply(ctx context.Context, prompt string) (chan PartialResponse, 
 	go c.resolve(ctx, conn, message)
 	//go func() {
 	//	for {
-	//		// 15秒执行一次
+	//		// 15秒执行一次心跳
 	//		<-time.After(15 * time.Second)
 	//		err = conn.WriteMessage(websocket.TextMessage, ping)
 	//		if err != nil {
@@ -167,7 +167,13 @@ func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan P
 			c.Session.InvocationId++
 			messages := response.Item.Messages
 			if messages != nil && len(*messages) > 1 {
-				response.Text = (*messages)[1].Text
+				text := ""
+				for _, item := range *messages {
+					if item.Author == "bot" {
+						text += item.Text
+					}
+				}
+				response.Text = text
 				message <- response
 			}
 			return true
@@ -239,7 +245,7 @@ func (c *Chat) newConn() (*websocket.Conn, error) {
 }
 
 // 构建对接参数
-func newHub(model string, conv Conversation, prompt string) (map[string]any, error) {
+func newHub(model string, conv Conversation, prompt string, previousMessages []map[string]string) (map[string]any, error) {
 	var hub map[string]any
 	if err := json.Unmarshal(chatHub, &hub); err != nil {
 		return nil, err
@@ -247,9 +253,10 @@ func newHub(model string, conv Conversation, prompt string) (map[string]any, err
 
 	messageId := uuid.NewString()
 
-	if model == "Sydney" {
+	if model == Sydney {
+		delete(hub, "allowedMessageTypes")
 		hub["sliceIds"] = sSliceIds
-		// TODO -
+		hub["tone"] = Creative
 	} else {
 		hub["sliceIds"] = sliceIds
 		hub["tone"] = model
@@ -273,9 +280,13 @@ func newHub(model string, conv Conversation, prompt string) (map[string]any, err
 	message["messageId"] = messageId
 	message["text"] = prompt
 
-	if conv.InvocationId == 0 {
+	if conv.InvocationId == 0 || model == Sydney {
 		hub["isStartOfSession"] = true
-	} else {
+		hub["previousMessages"] = previousMessages
+		if len(previousMessages) > 0 {
+			conv.InvocationId = len(previousMessages) / 2
+		}
+	} else if model != "Sydney" {
 		delete(hub, "previousMessages")
 	}
 	return hub, nil
@@ -307,7 +318,11 @@ func (c *Chat) newConversation() (*Conversation, error) {
 		return nil, e
 	}
 
-	conv.TraceId = strings.ReplaceAll(uuid.NewString(), "-", "")
+	if c.TraceId != "" {
+		conv.TraceId = c.TraceId
+	} else {
+		conv.TraceId = strings.ReplaceAll(uuid.NewString(), "-", "")
+	}
 	conv.InvocationId = 0
 	return &conv, nil
 }

@@ -1,16 +1,17 @@
 {
   "source":"cib",
   "optionsSets":[
-    "deepleo",
     "nlu_direct_response_filter",
     "disable_emoji_spoken_text",
     "responsible_ai_policy_235",
+    "deepleo",
     "enablemm",
-    "harmonyv3",
     "h3imaginative",
-    "rcsprtsalwlst",
+    "dagslnv1",
+    "sportsansgnd",
+    "dl_edge_desc",
+    "noknowimg",
     "dv3sugg",
-    "autosave",
     "gencontentv3"
   ],
   "allowedMessageTypes":[

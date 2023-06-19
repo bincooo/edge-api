@@ -39,7 +39,6 @@ var (
 	}
 
 	sSliceIds = []string{
-		"winmuid3tf",
 		"222dtappid",
 		"225cricinfo",
 		"224locals0",

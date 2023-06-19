@@ -17,6 +17,7 @@ type Chat struct {
 	mu sync.Mutex
 
 	Session Conversation
+	TraceId string
 }
 
 type Conversation struct {
@@ -42,10 +43,10 @@ type PartialResponse struct {
 	Arguments []struct {
 		RequestId string `json:"requestId"`
 
-		Throttling *struct {
-			Max  int `json:"maxNumUserMessagesInConversation"`
-			Used int `json:"numUserMessagesInConversation"`
-		} `json:"throttling"`
+		//Throttling *struct {
+		//	Max  int `json:"maxNumUserMessagesInConversation"`
+		//	Used int `json:"numUserMessagesInConversation"`
+		//} `json:"throttling"`
 
 		Messages *[]struct {
 			Text        string `json:"text"`
@@ -64,6 +65,11 @@ type PartialResponse struct {
 			Text   string `json:"text"`
 			Type   string `json:"messageType"`
 		} `json:"messages"`
+
+		Throttling *struct {
+			Max  int `json:"maxNumUserMessagesInConversation"`
+			Used int `json:"numUserMessagesInConversation"`
+		} `json:"throttling"`
 	} `json:"item"`
 
 	Text string `json:"-"`
