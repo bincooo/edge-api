@@ -180,7 +180,6 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			}
 			_ = conn.Close()
 			conn.IsClose = true
-
 			c.Session.InvocationId++
 			messages := response.Item.Messages
 			if messages != nil && len(*messages) > 1 {
