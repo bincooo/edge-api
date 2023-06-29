@@ -61,9 +61,10 @@ type PartialResponse struct {
 		} `json:"result"`
 
 		Messages *[]struct {
-			Author string `json:"author"`
-			Text   string `json:"text"`
-			Type   string `json:"messageType"`
+			Author     string `json:"author"`
+			Text       string `json:"text"`
+			Type       string `json:"messageType"`
+			SpokenText string `json:"spokenText"`
 		} `json:"messages"`
 
 		Throttling *struct {

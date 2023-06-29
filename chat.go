@@ -163,7 +163,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 		var response PartialResponse
 		slice := bytes.Split(marshal, []byte(Delimiter))
 
-		logrus.Debug(slice[0])
+		logrus.Debug(string(slice[0]))
 		err = json.Unmarshal(slice[0], &response)
 		if err != nil {
 			message <- PartialResponse{
@@ -188,6 +188,9 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 				for _, item := range *messages {
 					if item.Author == "bot" {
 						texts = append(texts, item.Text)
+						if item.Text == "" && item.SpokenText != "" {
+							texts = append(texts, item.SpokenText)
+						}
 					}
 				}
 				response.Text = strings.Join(texts, "\n")
