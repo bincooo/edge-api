@@ -21,7 +21,7 @@ func main() {
 
 	prompt := "hi"
 	fmt.Println("You: ", prompt)
-	partialResponse, err := chat.Reply(context.Background(), prompt)
+	partialResponse, err := chat.Reply(context.Background(), prompt, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +29,7 @@ func main() {
 
 	prompt = "who are you?"
 	fmt.Println("You: ", prompt)
-	partialResponse, err = chat.Reply(context.Background(), prompt)
+	partialResponse, err = chat.Reply(context.Background(), prompt, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +39,7 @@ func main() {
 	fmt.Println("You: ", prompt)
 	timeout, cancel := context.WithTimeout(context.TODO(), 20*time.Second)
 	defer cancel()
-	partialResponse, err = chat.Reply(timeout, prompt)
+	partialResponse, err = chat.Reply(timeout, prompt, nil)
 	if err != nil {
 		panic(err)
 	}

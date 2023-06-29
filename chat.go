@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/RomiChan/websocket"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,6 +21,11 @@ var H = map[string]string{
 }
 
 type kv = map[string]string
+
+type wsConn struct {
+	*websocket.Conn
+	IsClose bool
+}
 
 func New(token, agency string) (*Chat, error) {
 	var bu string
@@ -112,27 +118,36 @@ func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[
 
 	message := make(chan PartialResponse)
 	go c.resolve(ctx, conn, message)
-	//go func() {
-	//	for {
-	//		// 15秒执行一次心跳
-	//		<-time.After(15 * time.Second)
-	//		err = conn.WriteMessage(websocket.TextMessage, ping)
-	//		if err != nil {
-	//			return
-	//		}
-	//	}
-	//}()
+	go func() {
+		const s15 = 15 * time.Second
+		t := time.Now().Add(s15)
+		for {
+			if conn.IsClose {
+				return
+			}
+			// 15秒执行一次心跳
+			if time.Now().After(t) {
+				t = time.Now().Add(s15)
+				err = conn.WriteMessage(websocket.TextMessage, ping)
+				if err != nil {
+					return
+				}
+			}
+			time.Sleep(time.Second)
+		}
+	}()
 	return message, nil
 }
 
 // 解析回复信息
-func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan PartialResponse) {
+func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialResponse) {
 	defer close(message)
 	defer c.mu.Unlock()
 	handle := func() bool {
 		// 轮询回复消息
 		_, marshal, err := conn.ReadMessage()
 		if err != nil {
+			conn.IsClose = true
 			message <- PartialResponse{
 				Error: err,
 			}
@@ -148,6 +163,7 @@ func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan P
 		var response PartialResponse
 		slice := bytes.Split(marshal, []byte(Delimiter))
 
+		logrus.Debug(slice[0])
 		err = json.Unmarshal(slice[0], &response)
 		if err != nil {
 			message <- PartialResponse{
@@ -163,6 +179,7 @@ func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan P
 				message <- response
 			}
 			_ = conn.Close()
+			conn.IsClose = true
 
 			c.Session.InvocationId++
 			messages := response.Item.Messages
@@ -218,7 +235,7 @@ func (c *Chat) resolve(ctx context.Context, conn *websocket.Conn, message chan P
 }
 
 // 创建websocket
-func (c *Chat) newConn() (*websocket.Conn, error) {
+func (c *Chat) newConn() (*wsConn, error) {
 	header := http.Header{}
 	for k, v := range c.Headers {
 		header.Add(k, v)
@@ -241,7 +258,7 @@ func (c *Chat) newConn() (*websocket.Conn, error) {
 		return nil, e
 	}
 
-	return conn, nil
+	return &wsConn{conn, false}, nil
 }
 
 // 构建对接参数
@@ -252,7 +269,6 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 	}
 
 	messageId := uuid.NewString()
-
 	if model == Sydney {
 		delete(hub, "allowedMessageTypes")
 		hub["sliceIds"] = sSliceIds
