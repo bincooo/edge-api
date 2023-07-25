@@ -77,8 +77,14 @@ func NewChat(opt Options) *Chat {
 func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[string]string) (chan PartialResponse, error) {
 	c.mu.Lock()
 	if c.Session.ConversationId == "" || c.Model == Sydney {
+		cnt := 1
+	label:
 		conv, err := c.newConversation()
 		if err != nil {
+			if cnt < c.Retry {
+				cnt++
+				goto label
+			}
 			c.mu.Unlock()
 			return nil, err
 		}
