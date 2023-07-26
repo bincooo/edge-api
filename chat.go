@@ -221,6 +221,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			return false
 		}
 
+		response.RowData = marshal
 		response.Text = m.Text
 		message <- response
 		return false
@@ -278,7 +279,16 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 
 	messageId := uuid.NewString()
 	if model == Sydney {
-		delete(hub, "allowedMessageTypes")
+		// delete(hub, "allowedMessageTypes")
+		amt := hub["allowedMessageTypes"].([]any)
+		h := func(str string) func(any) bool {
+			return func(item any) bool {
+				return item == str
+			}
+		}
+		amt = deleteItem(amt, h("SearchQuery"))
+		amt = deleteItem(amt, h("InternalSearchResult"))
+		hub["allowedMessageTypes"] = amt
 		hub["sliceIds"] = sSliceIds
 		hub["tone"] = Creative
 	} else {
@@ -349,4 +359,17 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 	conv.InvocationId = 0
 	return &conv, nil
+}
+
+func deleteItem[T any](slice []T, condition func(item T) bool) []T {
+	if len(slice) == 0 {
+		return slice
+	}
+
+	for idx, element := range slice {
+		if condition(element) {
+			return append(slice[:idx], slice[idx+1:]...)
+		}
+	}
+	return slice
 }

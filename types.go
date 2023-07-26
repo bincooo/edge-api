@@ -73,5 +73,6 @@ type PartialResponse struct {
 		} `json:"throttling"`
 	} `json:"item"`
 
-	Text string `json:"-"`
+	RowData []byte `json:"-"`
+	Text    string `json:"-"`
 }

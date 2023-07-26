@@ -20,12 +20,12 @@
     "Context",
     "InternalSearchQuery",
     "InternalSearchResult",
-    "Disengaged",
     "InternalLoaderMessage",
+    "SearchQuery",
+    "Disengaged",
     "Progress",
     "RenderCardRequest",
-    "SemanticSerp",
-    "SearchQuery"
+    "SemanticSerp"
   ],
   "sliceIds":[],
   "verbosity":"verbose",
