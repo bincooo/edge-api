@@ -27,7 +27,7 @@ type wsConn struct {
 	IsClose bool
 }
 
-func New(token, agency string) (*Chat, error) {
+func New(cookie, agency string) (*Chat, error) {
 	var bu string
 	var ws string
 	if agency != "" {
@@ -49,7 +49,7 @@ func New(token, agency string) (*Chat, error) {
 		CreateURL: bu,
 		Model:     Creative,
 		Headers: map[string]string{
-			"Cookie": "_U=" + token,
+			"Cookie": cookie,
 		},
 	}), nil
 }

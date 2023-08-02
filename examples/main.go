@@ -10,10 +10,10 @@ import (
 func main() {
 
 	const (
-		token  = "xxx"
+		cookie = "xxx"
 		agency = "https://edge.zjcs666.icu"
 	)
-	chat, err := edge.New(token, agency)
+	chat, err := edge.New(cookie, agency)
 	chat.Model = edge.Sydney
 	if err != nil {
 		panic(err)
