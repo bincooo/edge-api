@@ -43,13 +43,17 @@ func New(cookie, agency string) (*Chat, error) {
 		ws = DefaultChatHub
 	}
 
+	co := cookie
+	if !strings.Contains(cookie, "_U=") {
+		co = "_U=" + cookie
+	}
 	return NewChat(Options{
 		Retry:     2,
 		WebSock:   ws,
 		CreateURL: bu,
 		Model:     Creative,
 		Headers: map[string]string{
-			"Cookie": cookie,
+			"Cookie": co,
 		},
 	}), nil
 }
@@ -187,20 +191,20 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			_ = conn.Close()
 			conn.IsClose = true
 			c.Session.InvocationId++
-			messages := response.Item.Messages
-			if messages != nil && len(*messages) > 1 {
-				var texts []string
-				for _, item := range *messages {
-					if item.Author == "bot" {
-						texts = append(texts, item.Text)
-						if item.Text == "" && item.SpokenText != "" {
-							texts = append(texts, item.SpokenText)
-						}
-					}
-				}
-				response.Text = strings.Join(texts, "\n")
-				message <- response
-			}
+			//messages := response.Item.Messages
+			//if messages != nil && len(*messages) > 1 {
+			//	var texts []string
+			//	for _, item := range *messages {
+			//		if item.Author == "bot" {
+			//			texts = append(texts, item.Text)
+			//			if item.Text == "" && item.SpokenText != "" {
+			//				texts = append(texts, item.SpokenText)
+			//			}
+			//		}
+			//	}
+			//	response.Text = strings.Join(texts, "\n")
+			message <- response
+			//}
 			return true
 		}
 
@@ -287,9 +291,11 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 			}
 		}
 		amt = deleteItem(amt, h("SearchQuery"))
+		amt = deleteItem(amt, h("RenderCardRequest"))
+		amt = deleteItem(amt, h("InternalSearchQuery"))
 		amt = deleteItem(amt, h("InternalSearchResult"))
 		hub["allowedMessageTypes"] = amt
-		hub["sliceIds"] = sSliceIds
+		hub["sliceIds"] = sliceIds //sSliceIds
 		hub["tone"] = Creative
 	} else {
 		hub["sliceIds"] = sliceIds
