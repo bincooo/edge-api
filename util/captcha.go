@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	baseURL = ""
+	baseURL = "http://bingcaptcha.ikechan8370.com/bing"
 )
 
 func SolveCaptcha(token string) error {
@@ -35,11 +35,11 @@ func SolveCaptcha(token string) error {
 		return e
 	}
 
-	if status, ok := result["status"]; ok {
-		if status.(float64) == 200 {
+	if success, ok := result["success"]; ok {
+		if success.(bool) {
 			return nil
 		} else {
-			return errors.New(result["statusText"].(string))
+			return errors.New("自动人机验证失败") //errors.New(result["statusText"].(string))
 		}
 	} else {
 		return errors.New("自动人机验证失败")
