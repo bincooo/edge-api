@@ -129,15 +129,15 @@ func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[
 	message := make(chan PartialResponse)
 	go c.resolve(ctx, conn, message)
 	go func() {
-		const s15 = 15 * time.Second
-		t := time.Now().Add(s15)
+		const s5 = 5 * time.Second
+		t := time.Now().Add(s5)
 		for {
 			if conn.IsClose {
 				return
 			}
-			// 15秒执行一次心跳
+			// 5秒执行一次心跳
 			if time.Now().After(t) {
-				t = time.Now().Add(s15)
+				t = time.Now().Add(s5)
 				err = conn.WriteMessage(websocket.TextMessage, ping)
 				if err != nil {
 					return
