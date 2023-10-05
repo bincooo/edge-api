@@ -17,7 +17,7 @@ import (
 )
 
 var H = map[string]string{
-	"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0",
+	"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.55",
 }
 
 type kv = map[string]string
@@ -115,6 +115,8 @@ func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[
 	}
 
 	marshal, err := json.Marshal(hub)
+	marshal = bytes.ReplaceAll(marshal, []byte("\n"), []byte(""))
+	marshal = bytes.ReplaceAll(marshal, []byte(" "), []byte(""))
 	if err != nil {
 		c.mu.Unlock()
 		return nil, err
@@ -186,25 +188,13 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 		if response.Type == 2 {
 			if response.Item.Result.Value != "Success" {
 				response.Error = errors.New("消息响应失败：" + response.Item.Result.Message)
+				response.RowData = slice[0]
 				message <- response
 			}
 			_ = conn.Close()
 			conn.IsClose = true
 			c.Session.InvocationId++
-			//messages := response.Item.Messages
-			//if messages != nil && len(*messages) > 1 {
-			//	var texts []string
-			//	for _, item := range *messages {
-			//		if item.Author == "bot" {
-			//			texts = append(texts, item.Text)
-			//			if item.Text == "" && item.SpokenText != "" {
-			//				texts = append(texts, item.SpokenText)
-			//			}
-			//		}
-			//	}
-			//	response.Text = strings.Join(texts, "\n")
 			message <- response
-			//}
 			return true
 		}
 
@@ -251,10 +241,33 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 func (c *Chat) newConn() (*wsConn, error) {
 	header := http.Header{}
 	for k, v := range c.Headers {
-		header.Add(k, v)
+		if strings.ToLower(k) == "cookie" {
+			if c.KievRPSSecAuth != "" {
+				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
+				v += "; _RwBf=" + c.RwBf
+			}
+			if v == "_U=" {
+				v = ""
+			}
+		}
+		if v != "" {
+			header.Add(k, v)
+		}
+	}
+	header.Add("accept-language", "en-US,en;q=0.9")
+	header.Add("origin", "https://edgeservices.bing.com")
+
+	purl, _ := url.Parse("http://127.0.0.1:7890")
+	dialer := &websocket.Dialer{
+		Proxy:            http.ProxyURL(purl),
+		HandshakeTimeout: 45 * time.Second,
 	}
 
-	conn, _, err := websocket.DefaultDialer.Dial(c.WebSock, header)
+	ustr := c.WebSock
+	if c.Session.AccessToken != "" {
+		ustr += "?sec_access_token=" + url.QueryEscape(c.Session.AccessToken)
+	}
+	conn, _, err := dialer.Dial(ustr, header)
 	if err != nil {
 		return nil, err
 	}
@@ -302,9 +315,10 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 		hub["tone"] = model
 	}
 
-	hub["traceId"] = conv.TraceId
+	// hub["traceId"] = conv.TraceId
+	// hub["conversationSignature"] = conv.Signature
+
 	hub["requestId"] = messageId
-	hub["conversationSignature"] = conv.Signature
 	hub["conversationId"] = conv.ConversationId
 	hub["participant"] = kv{
 		"id": conv.ClientId,
@@ -322,9 +336,11 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 
 	if conv.InvocationId == 0 || model == Sydney {
 		hub["isStartOfSession"] = true
-		hub["previousMessages"] = previousMessages
 		if len(previousMessages) > 0 {
+			hub["previousMessages"] = previousMessages
 			conv.InvocationId = len(previousMessages) / 2
+		} else {
+			delete(hub, "previousMessages")
 		}
 	} else if model != "Sydney" {
 		delete(hub, "previousMessages")
@@ -340,10 +356,29 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 
 	for k, v := range c.Headers {
-		request.Header.Add(k, v)
+		if strings.ToLower(k) == "cookie" {
+			if c.KievRPSSecAuth != "" {
+				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
+				v += "; _RwBf=" + c.RwBf
+			}
+			if v == "_U=" {
+				v = ""
+			}
+		}
+		if v != "" {
+			request.Header.Add(k, v)
+		}
 	}
 
-	r, err := http.DefaultClient.Do(request)
+	purl, _ := url.Parse("http://127.0.0.1:7890")
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(purl),
+		},
+	}
+
+	// r, err := http.DefaultClient.Do(request)
+	r, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -364,6 +399,7 @@ func (c *Chat) newConversation() (*Conversation, error) {
 		conv.TraceId = strings.ReplaceAll(uuid.NewString(), "-", "")
 	}
 	conv.InvocationId = 0
+	conv.AccessToken = r.Header.Get("X-Sydney-Encryptedconversationsignature")
 	return &conv, nil
 }
 

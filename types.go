@@ -10,6 +10,9 @@ type Options struct {
 	WebSock   string
 	CreateURL string
 	Model     string
+
+	KievRPSSecAuth string
+	RwBf           string
 }
 
 type Chat struct {
@@ -23,7 +26,7 @@ type Chat struct {
 type Conversation struct {
 	ConversationId string `json:"conversationId"`
 	ClientId       string `json:"clientId"`
-	Signature      string `json:"conversationSignature"`
+	// Signature      string `json:"conversationSignature"`
 
 	Result struct {
 		Value   string      `json:"value"`
@@ -32,6 +35,7 @@ type Conversation struct {
 
 	TraceId      string `json:"-"`
 	InvocationId int    `json:"-"`
+	AccessToken  string `json:"-"`
 }
 
 type PartialResponse struct {

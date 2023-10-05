@@ -2,17 +2,21 @@
   "source":"cib",
   "optionsSets":[
     "nlu_direct_response_filter",
+    "deepleo",
     "disable_emoji_spoken_text",
     "responsible_ai_policy_235",
-    "deepleo",
     "enablemm",
-    "h3imaginative",
-    "dagslnv1",
-    "sportsansgnd",
-    "dl_edge_desc",
-    "noknowimg",
     "dv3sugg",
-    "gencontentv3"
+    "autosave",
+    "iyxapbing",
+    "iycapbing",
+    "h3imaginative",
+    "osbsdrecoff",
+    "log2sph",
+    "eredirecturl",
+    "clgalileo",
+    "gencontentv3",
+    "fluxv14"
   ],
   "allowedMessageTypes":[
     "ActionRequest",
@@ -20,51 +24,85 @@
     "Context",
     "InternalSearchQuery",
     "InternalSearchResult",
-    "InternalLoaderMessage",
-    "SearchQuery",
     "Disengaged",
+    "InternalLoaderMessage",
     "Progress",
     "RenderCardRequest",
-    "SemanticSerp"
+    "RenderContentRequest",
+    "AdsQuery",
+    "SemanticSerp",
+    "GenerateContentQuery",
+    "SearchQuery"
   ],
-  "sliceIds":[],
+  "sliceIds":[
+    "tnamobcf",
+    "adssqovr",
+    "arankr1_1_9_9",
+    "926buffalls0",
+    "inosanews",
+    "wrapnoins",
+    "prehome",
+    "edgenorrwrap",
+    "tstchtadd",
+    "sydtransctrl",
+    "806log2sph",
+    "927uprofasys0",
+    "0908loccnts0",
+    "917fluxv14"
+  ],
   "verbosity":"verbose",
-  "traceId":"648d851d68f547239e9d458285edae5d",
-  "isStartOfSession":false,
-  "requestId":"",
+  "scenario":"SERP",
+  "plugins":[
+
+  ],
+  "traceId":"651ef680d3514d5f8f8425a1d3258dd4",
+  "conversationHistoryOptionsSets":[
+    "autosave",
+    "savemem",
+    "uprofupd",
+    "uprofgen"
+  ],
+  "isStartOfSession":true,
+  "requestId":"6a3abad4-aac3-242a-b430-54abf0b89c82",
   "message":{
-    "locale":"zh-CN",
-    "market":"zh-CN",
-    "region":"HK",
+    "locale":"en-US",
+    "market":"en-US",
+    "region":"SG",
     "location":"lat:47.639557;long:-122.128159;re=1000m;",
     "locationHints":[
       {
-        "country":"Hong Kong",
-        "state":"Hong Kong",
-        "city":"Aberdeen",
-        "timezoneoffset":8,
-        "countryConfidence":8,
-        "cityConfidence":5,
-        "Center":{
-          "Latitude":22.2478,
-          "Longitude":114.1517
-        },
+        "SourceType":1,
         "RegionType":2,
-        "SourceType":1
+        "Center":{
+          "Latitude":1.2870999574661255,
+          "Longitude":103.85169982910156
+        },
+        "Radius":24902,
+        "Name":"Downtown Core, Central Singapore Community Development Council",
+        "Accuracy":24902,
+        "FDConfidence":0.8999999761581421,
+        "CountryName":"Singapore",
+        "CountryConfidence":9,
+        "Admin1Name":"Central Singapore Community Development Council",
+        "PopulatedPlaceName":"Downtown Core",
+        "PopulatedPlaceConfidence":9,
+        "PostCodeName":"179555",
+        "UtcOffset":8,
+        "Dma":0
       }
     ],
-    "timestamp":"2023-06-17T18:04:16+08:00",
+    "timestamp":"2023-10-06T01:46:41+08:00",
     "author":"user",
     "inputMethod":"Keyboard",
     "text":"",
     "messageType":"Chat",
-    "requestId":"",
-    "messageId":""
+    "requestId":"6a3abad4-aac3-242a-b430-54abf0b89c82",
+    "messageId":"6a3abad4-aac3-242a-b430-54abf0b89c82"
   },
   "tone":"Creative",
-  "conversationSignature":"",
-  "participant":{ "id":"" },
   "spokenTextMode":"None",
-  "conversationId":"",
-  "previousMessages":[]
+  "conversationId":"51D|BingProd|11C09321C6149BC0E1711B1303698554D1EBC65697F0198DAF3E71AB40F316FC",
+  "participant":{
+    "id":"1055519805418731"
+  }
 }
