@@ -257,10 +257,16 @@ func (c *Chat) newConn() (*wsConn, error) {
 	header.Add("accept-language", "en-US,en;q=0.9")
 	header.Add("origin", "https://edgeservices.bing.com")
 
-	purl, _ := url.Parse("http://127.0.0.1:7890")
-	dialer := &websocket.Dialer{
-		Proxy:            http.ProxyURL(purl),
-		HandshakeTimeout: 45 * time.Second,
+	dialer := websocket.DefaultDialer
+	if c.Proxy != "" {
+		purl, e := url.Parse(c.Proxy)
+		if e != nil {
+			return nil, e
+		}
+		dialer = &websocket.Dialer{
+			Proxy:            http.ProxyURL(purl),
+			HandshakeTimeout: 45 * time.Second,
+		}
 	}
 
 	ustr := c.WebSock
@@ -370,11 +376,17 @@ func (c *Chat) newConversation() (*Conversation, error) {
 		}
 	}
 
-	purl, _ := url.Parse("http://127.0.0.1:7890")
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(purl),
-		},
+	client := http.DefaultClient
+	if c.Proxy != "" {
+		purl, e := url.Parse(c.Proxy)
+		if e != nil {
+			return nil, e
+		}
+		client = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(purl),
+			},
+		}
 	}
 
 	// r, err := http.DefaultClient.Do(request)

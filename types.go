@@ -10,6 +10,7 @@ type Options struct {
 	WebSock   string
 	CreateURL string
 	Model     string
+	Proxy     string
 
 	KievRPSSecAuth string
 	RwBf           string
