@@ -371,10 +371,10 @@ func (c *Chat) newConversation() (*Conversation, error) {
 			if v == "_U=" {
 				v = ""
 			}
-			if c.KievRPSSecAuth != "" {
+			if c.KievRPSSecAuth != "" && !strings.Contains(v, "KievRPSSecAuth=") {
 				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
 			}
-			if c.RwBf != "" {
+			if c.RwBf != "" && !strings.Contains(v, "_RwBf=") {
 				v += "; _RwBf=" + c.RwBf
 			}
 			if c.MUID != "" {
