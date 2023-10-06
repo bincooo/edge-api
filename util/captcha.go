@@ -4,14 +4,30 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/joho/godotenv"
 	"io"
 	"net/http"
+	"os"
 )
 
-const (
-	baseURL = "http://bingcaptcha.ikechan8370.com/bing"
+var (
+	baseURL = "https://666102.201666.xyz"
 )
 
+func init() {
+	_ = godotenv.Load()
+	baseURL = LoadEnvVar("BING_CAPTCHA_URL", baseURL)
+}
+
+func LoadEnvVar(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
+}
+
+// https://github.com/ikechan8370/chatgpt-plugin/blob/64f2699b2210cf7f4b655e66d09cfc0b133361cf/utils/bingCaptcha.js#L64
 func SolveCaptcha(token string) error {
 	params := map[string]string{
 		"_U": token,
