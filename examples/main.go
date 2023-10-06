@@ -12,10 +12,14 @@ func main() {
 	const (
 		cookie = "xxx"
 		agency = ""
+
+		KievAuth = "xxx"
+		RwBf     = "xxx"
 	)
 	chat, err := edge.New(cookie, agency)
-	//chat.KievRPSSecAuth = KievAuth
-	//chat.RwBf = RwBf
+	chat.KievRPSSecAuth = KievAuth
+	chat.RwBf = RwBf
+	chat.Proxy = "http://127.0.0.1:7890"
 	chat.Model = edge.Sydney
 	if err != nil {
 		panic(err)

@@ -14,6 +14,7 @@ type Options struct {
 
 	KievRPSSecAuth string
 	RwBf           string
+	MUID           string
 }
 
 type Chat struct {

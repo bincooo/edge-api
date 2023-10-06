@@ -242,12 +242,17 @@ func (c *Chat) newConn() (*wsConn, error) {
 	header := http.Header{}
 	for k, v := range c.Headers {
 		if strings.ToLower(k) == "cookie" {
-			if c.KievRPSSecAuth != "" {
-				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
-				v += "; _RwBf=" + c.RwBf
-			}
 			if v == "_U=" {
 				v = ""
+			}
+			if c.KievRPSSecAuth != "" {
+				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
+			}
+			if c.RwBf != "" {
+				v += "; _RwBf=" + c.RwBf
+			}
+			if c.MUID != "" {
+				v += "; MUID=" + c.MUID
 			}
 		}
 		if v != "" {
@@ -363,12 +368,17 @@ func (c *Chat) newConversation() (*Conversation, error) {
 
 	for k, v := range c.Headers {
 		if strings.ToLower(k) == "cookie" {
-			if c.KievRPSSecAuth != "" {
-				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
-				v += "; _RwBf=" + c.RwBf
-			}
 			if v == "_U=" {
 				v = ""
+			}
+			if c.KievRPSSecAuth != "" {
+				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
+			}
+			if c.RwBf != "" {
+				v += "; _RwBf=" + c.RwBf
+			}
+			if c.MUID != "" {
+				v += "; MUID=" + c.MUID
 			}
 		}
 		if v != "" {
@@ -412,6 +422,14 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 	conv.InvocationId = 0
 	conv.AccessToken = r.Header.Get("X-Sydney-Encryptedconversationsignature")
+	cookies := r.Header.Values("Set-Cookie")
+	for _, cookie := range cookies {
+		if cookie[:5] == "MUID=" {
+			c.MUID = strings.Split(cookie, "; ")[0][5:]
+			break
+		}
+	}
+
 	return &conv, nil
 }
 
