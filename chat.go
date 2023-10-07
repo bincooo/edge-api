@@ -404,7 +404,7 @@ func (c *Chat) newConversation() (*Conversation, error) {
 }
 
 func (c *Chat) initHeader() http.Header {
-	var h http.Header
+	var h = make(http.Header)
 	for k, v := range c.Headers {
 		if strings.ToLower(k) == "cookie" {
 			if v == "_U=" {
