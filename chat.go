@@ -239,26 +239,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 
 // 创建websocket
 func (c *Chat) newConn() (*wsConn, error) {
-	header := http.Header{}
-	for k, v := range c.Headers {
-		if strings.ToLower(k) == "cookie" {
-			if v == "_U=" {
-				v = ""
-			}
-			if c.KievRPSSecAuth != "" {
-				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
-			}
-			if c.RwBf != "" {
-				v += "; _RwBf=" + c.RwBf
-			}
-			if c.MUID != "" {
-				v += "; MUID=" + c.MUID
-			}
-		}
-		if v != "" {
-			header.Add(k, v)
-		}
-	}
+	header := c.initHeader()
 	header.Add("accept-language", "en-US,en;q=0.9")
 	header.Add("origin", "https://edgeservices.bing.com")
 
@@ -307,7 +288,6 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 
 	messageId := uuid.NewString()
 	if model == Sydney {
-		// delete(hub, "allowedMessageTypes")
 		amt := hub["allowedMessageTypes"].([]any)
 		h := func(str string) func(any) bool {
 			return func(item any) bool {
@@ -326,7 +306,7 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 		hub["tone"] = model
 	}
 
-	// hub["traceId"] = conv.TraceId
+	hub["traceId"] = conv.TraceId
 	// hub["conversationSignature"] = conv.Signature
 
 	hub["requestId"] = messageId
@@ -359,6 +339,15 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 	return hub, nil
 }
 
+// 删除会话
+func (c *Chat) deleteConversation() {
+	conversationId := c.Session.ConversationId
+	if conversationId == "" {
+		return
+	}
+	// TODO traceId随机uuid生成，貌似不用管它
+}
+
 // 创建会话
 func (c *Chat) newConversation() (*Conversation, error) {
 	request, err := http.NewRequest(http.MethodGet, c.CreateURL, nil)
@@ -366,26 +355,7 @@ func (c *Chat) newConversation() (*Conversation, error) {
 		return nil, err
 	}
 
-	for k, v := range c.Headers {
-		if strings.ToLower(k) == "cookie" {
-			if v == "_U=" {
-				v = ""
-			}
-			if c.KievRPSSecAuth != "" && !strings.Contains(v, "KievRPSSecAuth=") {
-				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
-			}
-			if c.RwBf != "" && !strings.Contains(v, "_RwBf=") {
-				v += "; _RwBf=" + c.RwBf
-			}
-			if c.MUID != "" {
-				v += "; MUID=" + c.MUID
-			}
-		}
-		if v != "" {
-			request.Header.Add(k, v)
-		}
-	}
-
+	request.Header = c.initHeader()
 	client := http.DefaultClient
 	if c.Proxy != "" {
 		purl, e := url.Parse(c.Proxy)
@@ -431,6 +401,30 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 
 	return &conv, nil
+}
+
+func (c *Chat) initHeader() http.Header {
+	var h http.Header
+	for k, v := range c.Headers {
+		if strings.ToLower(k) == "cookie" {
+			if v == "_U=" {
+				v = ""
+			}
+			if c.KievRPSSecAuth != "" && !strings.Contains(v, "KievRPSSecAuth=") {
+				v += "; KievRPSSecAuth=" + c.KievRPSSecAuth
+			}
+			if c.RwBf != "" && !strings.Contains(v, "_RwBf=") {
+				v += "; _RwBf=" + c.RwBf
+			}
+			if c.MUID != "" {
+				v += "; MUID=" + c.MUID
+			}
+		}
+		if v != "" {
+			h.Add(k, v)
+		}
+	}
+	return h
 }
 
 func deleteItem[T any](slice []T, condition func(item T) bool) []T {
