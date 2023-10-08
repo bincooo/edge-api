@@ -21,6 +21,7 @@ type Chat struct {
 	Options
 	mu sync.Mutex
 
+	agency  string
 	Session Conversation
 	TraceId string
 }

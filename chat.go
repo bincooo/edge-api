@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/RomiChan/websocket"
+	"github.com/bincooo/edge-api/util"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -47,7 +48,7 @@ func New(cookie, agency string) (*Chat, error) {
 	if !strings.Contains(cookie, "_U=") {
 		co = "_U=" + cookie
 	}
-	return NewChat(Options{
+	return NewChat(agency, Options{
 		Retry:     2,
 		WebSock:   ws,
 		CreateURL: bu,
@@ -58,7 +59,7 @@ func New(cookie, agency string) (*Chat, error) {
 	}), nil
 }
 
-func NewChat(opt Options) *Chat {
+func NewChat(agency string, opt Options) *Chat {
 	has := func(key string) bool {
 		for k, _ := range opt.Headers {
 			if strings.ToLower(k) == key {
@@ -73,8 +74,10 @@ func NewChat(opt Options) *Chat {
 			opt.Headers[k] = v
 		}
 	}
-
-	chat := Chat{Options: opt}
+	if agency == "" {
+		agency = "https://www.bing.com"
+	}
+	chat := Chat{agency: agency, Options: opt}
 	return &chat
 }
 
@@ -95,7 +98,7 @@ func (c *Chat) Reply(ctx context.Context, prompt string, previousMessages []map[
 		c.Session = *conv
 	}
 
-	h, err := newHub(c.Model, c.Session, prompt, previousMessages)
+	h, err := c.newHub(c.Model, c.Session, prompt, previousMessages)
 	if err != nil {
 		c.mu.Unlock()
 		return nil, err
@@ -280,7 +283,7 @@ func (c *Chat) newConn() (*wsConn, error) {
 }
 
 // 构建对接参数
-func newHub(model string, conv Conversation, prompt string, previousMessages []map[string]string) (map[string]any, error) {
+func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMessages []map[string]string) (map[string]any, error) {
 	var hub map[string]any
 	if err := json.Unmarshal(chatHub, &hub); err != nil {
 		return nil, err
@@ -323,7 +326,16 @@ func newHub(model string, conv Conversation, prompt string, previousMessages []m
 	message["timestamp"] = time.Now().Format("2006-01-02T15:04:05+08:00")
 	message["requestId"] = messageId
 	message["messageId"] = messageId
-	message["text"] = prompt
+	image, result := util.ParseImage(prompt)
+	if image != "" {
+		blob, err := util.UploadImage(c.agency, c.Proxy, image)
+		if err != nil {
+			return nil, err
+		}
+		message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.ProcessedBlobId
+		message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.BlobId
+	}
+	message["text"] = result
 
 	if conv.InvocationId == 0 || model == Sydney {
 		hub["isStartOfSession"] = true

@@ -10,7 +10,7 @@ import (
 func main() {
 
 	const (
-		cookie = "xxx"
+		cookie = "1jlu__K_COr23peG_PZfavtwnN0I6zZGzYbvcAwzeRtJ9W3cM9Fhhz2fLdrroIgZboR1XHt_HxCMClYd2fyZ41avh2zeQ3NWgBkCaKLtuxYH770bk4pPMi2ZJ-1aqB2KvPTohkC4orNnWB6kboIEJtrWOlE62cmp33CGtT9HAzGXI3M1hdAostItd881sjZpkwcECzcWYUSqnwe2qSvZyzQ"
 		agency = ""
 
 		KievAuth = "xxx"
@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	prompt := "一天有几个时辰"
+	prompt := "{image:/Users/bincooo/Desktop/R-C.jpg}\n这是什么花"
 	fmt.Println("You: ", prompt)
 	partialResponse, err := chat.Reply(context.Background(), prompt, nil)
 	if err != nil {
@@ -33,13 +33,13 @@ func main() {
 	}
 	Println(partialResponse)
 
-	prompt = "今年发什么了什么"
-	fmt.Println("You: ", prompt)
-	partialResponse, err = chat.Reply(context.Background(), prompt, nil)
-	if err != nil {
-		panic(err)
-	}
-	Println(partialResponse)
+	//prompt = "今年发什么了什么"
+	//fmt.Println("You: ", prompt)
+	//partialResponse, err = chat.Reply(context.Background(), prompt, nil)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//Println(partialResponse)
 
 	//prompt = "what can you do?"
 	//fmt.Println("You: ", prompt)

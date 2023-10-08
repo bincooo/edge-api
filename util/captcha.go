@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	baseURL = "https://666102.201666.xyz"
+	baseURL = "http://bingcaptcha.ikechan8370.com/bing"
 )
 
 func init() {
