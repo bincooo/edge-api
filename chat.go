@@ -340,6 +340,17 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 	if conv.InvocationId == 0 || model == Sydney {
 		hub["isStartOfSession"] = true
 		if len(previousMessages) > 0 {
+			for _, previousMessage := range previousMessages {
+				if previousMessage["author"] != "user" {
+					continue
+				}
+				text := previousMessage["text"]
+				if blob, tex := util.ParseKBlob(text); blob != nil {
+					message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.ProcessedBlobId
+					message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.BlobId
+					previousMessage["text"] = tex
+				}
+			}
 			hub["previousMessages"] = previousMessages
 			conv.InvocationId = len(previousMessages) / 2
 		} else {

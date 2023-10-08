@@ -92,7 +92,26 @@ func ParseImage(prompt string) (image, result string) {
 		return "", prompt
 	}
 	result = strings.Replace(prompt, imageSchema, "", -1)
-	return strings.TrimSpace(strings.TrimSuffix(
-			strings.TrimPrefix(imageSchema, "{image:"), "}\n")),
-		result
+	imageSchema = strings.TrimPrefix(imageSchema, "{image:")
+	imageSchema = strings.TrimSuffix(imageSchema, "}\n")
+	return strings.TrimSpace(imageSchema), result
+}
+
+// 解析上传图片信息: {blob:blobId#processedBlobId}\n
+func ParseKBlob(prompt string) (*KBlob, string) {
+	if prompt != "" {
+		return nil, prompt
+	}
+
+	regexCompile := regexp.MustCompile(`\{blob:[^}]+}\n`)
+	blobSchema := regexCompile.FindString(prompt)
+	if blobSchema == "" {
+		return nil, prompt
+	}
+
+	result := strings.Replace(prompt, blobSchema, "", -1)
+	blobSchema = strings.TrimPrefix(blobSchema, "{blob:")
+	blobSchema = strings.TrimSuffix(blobSchema, "}\n")
+	slice := strings.Split(blobSchema, "#")
+	return &KBlob{slice[0], slice[1]}, result
 }
