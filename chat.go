@@ -326,18 +326,15 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 	message["timestamp"] = time.Now().Format("2006-01-02T15:04:05+08:00")
 	message["requestId"] = messageId
 	message["messageId"] = messageId
-	image, result := util.ParseImage(prompt)
-	if image != "" {
-		blob, err := util.UploadImage(c.agency, c.Proxy, image)
-		if err != nil {
-			return nil, err
-		}
+	if blob, tex := util.ParseKBlob(prompt); blob != nil {
 		message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.ProcessedBlobId
 		message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.BlobId
+		prompt = tex
 	}
-	message["text"] = result
+	message["text"] = prompt
 
 	if conv.InvocationId == 0 || model == Sydney {
+		// 处理历史消息
 		hub["isStartOfSession"] = true
 		if len(previousMessages) > 0 {
 			for _, previousMessage := range previousMessages {
@@ -346,8 +343,8 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 				}
 				text := previousMessage["text"]
 				if blob, tex := util.ParseKBlob(text); blob != nil {
-					message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.ProcessedBlobId
-					message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.BlobId
+					previousMessage["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.ProcessedBlobId
+					previousMessage["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + blob.BlobId
 					previousMessage["text"] = tex
 				}
 			}
