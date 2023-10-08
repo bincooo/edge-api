@@ -10,7 +10,7 @@ import (
 func main() {
 
 	const (
-		cookie = "1jlu__K_COr23peG_PZfavtwnN0I6zZGzYbvcAwzeRtJ9W3cM9Fhhz2fLdrroIgZboR1XHt_HxCMClYd2fyZ41avh2zeQ3NWgBkCaKLtuxYH770bk4pPMi2ZJ-1aqB2KvPTohkC4orNnWB6kboIEJtrWOlE62cmp33CGtT9HAzGXI3M1hdAostItd881sjZpkwcECzcWYUSqnwe2qSvZyzQ"
+		cookie = "xxx"
 		agency = ""
 
 		KievAuth = "xxx"
@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	prompt := "{image:/Users/bincooo/Desktop/R-C.jpg}\n这是什么花"
+	prompt := "11{blob:r83W0H-iQysG1g#rwtohAo3oCsGwA}\n这是什么游戏? 简单回答"
 	fmt.Println("You: ", prompt)
 	partialResponse, err := chat.Reply(context.Background(), prompt, nil)
 	if err != nil {
@@ -33,13 +33,22 @@ func main() {
 	}
 	Println(partialResponse)
 
-	//prompt = "今年发什么了什么"
-	//fmt.Println("You: ", prompt)
-	//partialResponse, err = chat.Reply(context.Background(), prompt, nil)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//Println(partialResponse)
+	pMessages := make([]map[string]string, 0)
+	pMessages = append(pMessages, map[string]string{
+		"author": "user",
+		"text":   prompt,
+	})
+
+	prompt = "这张图显示了数字几？"
+	fmt.Println("You: ", prompt)
+	partialResponse, err = chat.Reply(context.Background(), prompt, nil)
+	if err != nil {
+		panic(err)
+	}
+	pMessages = append(pMessages, map[string]string{
+		"author": "bot",
+		"text":   Println(partialResponse),
+	})
 
 	//prompt = "what can you do?"
 	//fmt.Println("You: ", prompt)
@@ -52,20 +61,22 @@ func main() {
 	//Println(partialResponse)
 }
 
-func Println(partialResponse chan edge.PartialResponse) {
+func Println(partialResponse chan edge.PartialResponse) string {
+	msg := ""
 	for {
 		message, ok := <-partialResponse
 		if !ok {
-			return
+			return msg
 		}
 
 		if message.Error != nil {
 			if message.Error == io.EOF {
-				return
+				return msg
 			}
 			panic(message.Error)
 		}
 
+		msg += message.Text
 		fmt.Println(message.Text)
 		fmt.Println("===============")
 	}

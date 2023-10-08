@@ -99,7 +99,7 @@ func ParseImage(prompt string) (image, result string) {
 
 // 解析上传图片信息: {blob:blobId#processedBlobId}\n
 func ParseKBlob(prompt string) (*KBlob, string) {
-	if prompt != "" {
+	if prompt == "" {
 		return nil, prompt
 	}
 
