@@ -29,7 +29,6 @@
     "Progress",
     "RenderCardRequest",
     "RenderContentRequest",
-    "AdsQuery",
     "SemanticSerp",
     "GenerateContentQuery",
     "SearchQuery"
