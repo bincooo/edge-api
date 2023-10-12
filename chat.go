@@ -360,12 +360,70 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 }
 
 // 删除会话
-func (c *Chat) deleteConversation() {
+func (c *Chat) Delete() error {
 	conversationId := c.Session.ConversationId
 	if conversationId == "" {
-		return
+		return nil
 	}
-	// TODO traceId随机uuid生成，貌似不用管它
+
+	request, err := http.NewRequest(http.MethodGet, c.CreateURL+"?conversationId="+c.Session.ConversationId, nil)
+	if err != nil {
+		return err
+	}
+
+	request.Header = c.initHeader()
+	client, err := c.initClient()
+	if err != nil {
+		return err
+	}
+
+	r, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	marshal, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	var conv Conversation
+	if err = json.Unmarshal(marshal, &conv); err != nil {
+		return err
+	}
+
+	authorization := r.Header.Get("X-Sydney-Conversationsignature")
+	params := map[string]any{
+		"conversationId": c.Session.ConversationId,
+		"optionsSets": []string{
+			"autosave",
+			"savemem",
+			"uprofupd",
+			"uprofgen",
+		},
+		"source": "cib",
+	}
+	requestUrl := c.agency
+	marshal, _ = json.Marshal(params)
+	if c.agency == "" || c.agency == "https://www.bing.com" {
+		requestUrl = "https://sydney.bing.com"
+	}
+	request, err = http.NewRequest(http.MethodPost, requestUrl+"/sydney/DeleteSingleConversation", bytes.NewBuffer(marshal))
+	if err != nil {
+		return err
+	}
+	request.Header = c.initHeader()
+	request.Header.Set("Authorization", "Bearer "+authorization)
+	request.Header.Set("Content-Type", "application/json")
+	client, err = c.initClient()
+	if err != nil {
+		return err
+	}
+	r, err = client.Do(request)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // 创建会话
@@ -376,20 +434,11 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 
 	request.Header = c.initHeader()
-	client := http.DefaultClient
-	if c.Proxy != "" {
-		purl, e := url.Parse(c.Proxy)
-		if e != nil {
-			return nil, e
-		}
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(purl),
-			},
-		}
+	client, err := c.initClient()
+	if err != nil {
+		return nil, err
 	}
 
-	// r, err := http.DefaultClient.Do(request)
 	r, err := client.Do(request)
 	if err != nil {
 		return nil, err
@@ -421,6 +470,22 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 
 	return &conv, nil
+}
+
+func (c *Chat) initClient() (*http.Client, error) {
+	client := http.DefaultClient
+	if c.Proxy != "" {
+		purl, err := url.Parse(c.Proxy)
+		if err != nil {
+			return nil, err
+		}
+		client = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(purl),
+			},
+		}
+	}
+	return client, nil
 }
 
 func (c *Chat) initHeader() http.Header {

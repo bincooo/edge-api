@@ -28,7 +28,6 @@
     "InternalLoaderMessage",
     "Progress",
     "RenderCardRequest",
-    "RenderContentRequest",
     "SemanticSerp",
     "GenerateContentQuery",
     "SearchQuery"
