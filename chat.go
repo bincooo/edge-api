@@ -228,7 +228,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 		select {
 		case <-ctx.Done():
 			message <- PartialResponse{
-				Error: errors.New("请求超时"),
+				Error: errors.New("resolve timeout"),
 			}
 			_ = conn.Close()
 			return
@@ -464,7 +464,9 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	cookies := r.Header.Values("Set-Cookie")
 	for _, cookie := range cookies {
 		if cookie[:5] == "MUID=" {
-			c.MUID = strings.Split(cookie, "; ")[0][5:]
+			if muid := strings.Split(cookie, "; ")[0][5:]; muid != "" {
+				c.MUID = muid
+			}
 			break
 		}
 	}
