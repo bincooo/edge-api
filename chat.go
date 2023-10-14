@@ -558,7 +558,7 @@ func randomIp() string {
 		return
 	}
 
-	randIndex := rand.Intn(len(IP_RANGE))
+	randIndex := rand.Intn(len(IP_RANGE) - 1)
 	startIPInt := ip2Int(IP_RANGE[randIndex][0])
 	endIPInt := ip2Int(IP_RANGE[randIndex][1])
 
