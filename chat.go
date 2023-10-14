@@ -536,6 +536,7 @@ func deleteItem[T any](slice []T, condition func(item T) bool) []T {
 // 获取随机ip
 // https://github.com/Harry-zklcdc/go-proxy-bingai/blob/fb6adba0da2745840bea5ce285097e84ecd085ab/cloudflare/worker.js#L97
 func randomIp() string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	ip2Int := func(ip string) int {
 		slice := strings.Split(ip, ".")
 		result := 0
@@ -558,11 +559,11 @@ func randomIp() string {
 		return
 	}
 
-	randIndex := rand.Intn(len(IP_RANGE) - 1)
+	randIndex := r.Intn(len(IP_RANGE))
 	startIPInt := ip2Int(IP_RANGE[randIndex][0])
 	endIPInt := ip2Int(IP_RANGE[randIndex][1])
 
-	newIpInt := rand.Intn(endIPInt-startIPInt) + startIPInt
+	newIpInt := r.Intn(endIPInt-startIPInt) + startIPInt
 	return int2Ip(newIpInt)
 }
 
