@@ -26,10 +26,6 @@
     "InternalSearchResult",
     "Disengaged",
     "InternalLoaderMessage",
-    "Progress",
-    "RenderCardRequest",
-    "SemanticSerp",
-    "GenerateContentQuery",
     "SearchQuery"
   ],
   "sliceIds":[
