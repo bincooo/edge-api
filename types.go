@@ -43,7 +43,8 @@ type Conversation struct {
 }
 
 type PartialResponse struct {
-	Error error `json:"-"`
+	Error      error  `json:"-"`
+	InnerError string `json:"error"`
 
 	Type         int    `json:"type"`
 	InvocationId string `json:"invocationId"`
@@ -82,6 +83,6 @@ type PartialResponse struct {
 		} `json:"throttling"`
 	} `json:"item"`
 
-	RowData []byte `json:"-"`
+	RawData []byte `json:"-"`
 	Text    string `json:"-"`
 }

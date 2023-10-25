@@ -191,11 +191,11 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			return false
 		}
 
+		response.RawData = slice[0]
 		// 结束本次应答
 		if response.Type == 2 {
 			if response.Item.Result.Value != "Success" {
 				response.Error = errors.New("消息响应失败：" + response.Item.Result.Message)
-				response.RowData = slice[0]
 				message <- response
 			}
 			_ = conn.Close()
@@ -203,6 +203,11 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			c.Session.InvocationId++
 			message <- response
 			return true
+		}
+
+		if response.Type == 3 {
+			response.Error = errors.New("消息响应失败：" + response.InnerError)
+			message <- response
 		}
 
 		if len(response.Arguments) == 0 {
@@ -222,7 +227,6 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 			return false
 		}
 
-		response.RowData = marshal
 		if m.HiddenText == "" {
 			response.Text = m.Text
 		}
