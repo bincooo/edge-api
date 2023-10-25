@@ -28,13 +28,13 @@ type wsConn struct {
 	IsClose bool
 }
 
-func New(cookie, agency string) (*Chat, error) {
+func NewDefaultOptions(cookie, agency string) (Options, error) {
 	var bu string
 	var ws string
 	if agency != "" {
 		u, err := url.Parse(agency)
 		if err != nil {
-			return nil, err
+			return Options{}, err
 		}
 
 		bu = agency + "/turing/conversation/create"
@@ -48,7 +48,7 @@ func New(cookie, agency string) (*Chat, error) {
 	if !strings.Contains(cookie, "_U=") {
 		co = "_U=" + cookie
 	}
-	return NewChat(agency, Options{
+	return Options{
 		Retry:     2,
 		WebSock:   ws,
 		CreateURL: bu,
@@ -56,12 +56,16 @@ func New(cookie, agency string) (*Chat, error) {
 		Headers: map[string]string{
 			"Cookie": co,
 		},
-	}), nil
+	}, nil
 }
 
-func NewChat(agency string, opt Options) *Chat {
+func New(opts Options) (*Chat, error) {
+	return NewChat(opts), nil
+}
+
+func NewChat(opts Options) *Chat {
 	has := func(key string) bool {
-		for k, _ := range opt.Headers {
+		for k, _ := range opts.Headers {
 			if strings.ToLower(k) == key {
 				return true
 			}
@@ -71,13 +75,13 @@ func NewChat(agency string, opt Options) *Chat {
 
 	for k, v := range H {
 		if !has(strings.ToLower(k)) {
-			opt.Headers[k] = v
+			opts.Headers[k] = v
 		}
 	}
-	if agency == "" {
-		agency = "https://www.bing.com"
+	if opts.agency == "" {
+		opts.agency = "https://www.bing.com"
 	}
-	chat := Chat{agency: agency, Options: opt}
+	chat := Chat{Options: opts}
 	return &chat
 }
 
@@ -292,7 +296,16 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 	}
 
 	messageId := uuid.NewString()
+
 	if model == Sydney {
+		var tone string
+		if c.Temperature > .6 {
+			model = Creative
+		} else if c.Temperature > .3 {
+			model = Balanced
+		} else {
+			model = Precise
+		}
 		amt := hub["allowedMessageTypes"].([]any)
 		h := func(str string) func(any) bool {
 			return func(item any) bool {
@@ -305,7 +318,7 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 		amt = deleteItem(amt, h("InternalSearchResult"))
 		hub["allowedMessageTypes"] = amt
 		hub["sliceIds"] = sliceIds //sSliceIds
-		hub["tone"] = Creative
+		hub["tone"] = tone
 	} else {
 		hub["sliceIds"] = sliceIds
 		hub["tone"] = model

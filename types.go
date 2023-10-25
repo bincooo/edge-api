@@ -5,13 +5,15 @@ import (
 )
 
 type Options struct {
-	Headers   map[string]string
-	Retry     int
-	WebSock   string
-	CreateURL string
-	Model     string
-	Proxy     string
+	Headers     map[string]string
+	Retry       int
+	WebSock     string
+	CreateURL   string
+	Model       string
+	Temperature float32
+	Proxy       string
 
+	agency         string
 	KievRPSSecAuth string
 	RwBf           string
 	MUID           string
@@ -21,7 +23,6 @@ type Chat struct {
 	Options
 	mu sync.Mutex
 
-	agency  string
 	Session Conversation
 	TraceId string
 }
