@@ -35,11 +35,15 @@ func main() {
 		KievAuth = "xxx"
 		RwBf     = "xxx"
 	)
-	chat, err := edge.New(cookie, agency)
-	chat.KievRPSSecAuth = KievAuth
-	chat.RwBf = RwBf
-	chat.Proxy = "http://127.0.0.1:7890"
-	chat.Model = edge.Sydney
+	options, err := edge.NewDefaultOptions(cookie, agency)
+	if err != nil {
+		panic(err)
+	}
+	options.KievRPSSecAuth = KievAuth
+	options.RwBf = RwBf
+	options.Proxy = "http://127.0.0.1:7890"
+	options.Model = edge.Sydney
+	chat, err := edge.New(options)
 	if err != nil {
 		panic(err)
 	}

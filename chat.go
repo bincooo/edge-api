@@ -59,11 +59,7 @@ func NewDefaultOptions(cookie, agency string) (Options, error) {
 	}, nil
 }
 
-func New(opts Options) (*Chat, error) {
-	return NewChat(opts), nil
-}
-
-func NewChat(opts Options) *Chat {
+func New(opts Options) *Chat {
 	has := func(key string) bool {
 		for k, _ := range opts.Headers {
 			if strings.ToLower(k) == key {
@@ -306,11 +302,11 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 	if model == Sydney {
 		var tone string
 		if c.Temperature > .6 {
-			model = Creative
+			tone = Creative
 		} else if c.Temperature > .3 {
-			model = Balanced
+			tone = Balanced
 		} else {
-			model = Precise
+			tone = Precise
 		}
 		amt := hub["allowedMessageTypes"].([]any)
 		h := func(str string) func(any) bool {
