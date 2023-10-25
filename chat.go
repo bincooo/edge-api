@@ -300,7 +300,9 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, previousMe
 	}
 
 	messageId := uuid.NewString()
-
+	if model == "" {
+		model = Creative
+	}
 	if model == Sydney {
 		var tone string
 		if c.Temperature > .6 {
