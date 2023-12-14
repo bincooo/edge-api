@@ -18,7 +18,7 @@ import (
 )
 
 var H = map[string]string{
-	"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.55",
+	"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0",
 }
 
 type kv = map[string]string
@@ -45,9 +45,10 @@ func NewDefaultOptions(cookie, agency string) (Options, error) {
 	}
 
 	co := cookie
-	if !strings.Contains(cookie, "_U=") {
+	if cookie != "" && !strings.Contains(cookie, "_U=") {
 		co = "_U=" + cookie
 	}
+
 	return Options{
 		Retry:     2,
 		WebSock:   ws,
