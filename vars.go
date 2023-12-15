@@ -3,8 +3,11 @@ package edge
 import _ "embed"
 
 const (
-	DefaultCreate  = "https://www.bing.com/turing/conversation/create"
+	Version        = "1.1342.3-cplt.12"
+	DefaultCreate  = "https://copilot.microsoft.com/turing/conversation/create"
 	DefaultChatHub = "wss://sydney.bing.com/sydney/ChatHub"
+	//DefaultCreate  = "https://www.bing.com/turing/conversation/create"
+	//DefaultChatHub = "wss://sydney.bing.com/sydney/ChatHub"
 
 	Creative = "Creative"
 	Balanced = "Balanced"
@@ -41,12 +44,6 @@ var (
 		"727nrprdrs0",
 	}
 
-	sSliceIds = []string{
-		"222dtappid",
-		"225cricinfo",
-		"224locals0",
-	}
-
-	Schema = []byte("{\"protocol\":\"json\",\"version\":1}" + Delimiter)
-	ping   = []byte("{\"type\":6}" + Delimiter)
+	schema = []byte{123, 34, 112, 114, 111, 116, 111, 99, 111, 108, 34, 58, 34, 106, 115, 111, 110, 34, 44, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 49, 125, 30}
+	ping   = []byte{123, 34, 116, 121, 112, 101, 34, 58, 54, 125, 30}
 )

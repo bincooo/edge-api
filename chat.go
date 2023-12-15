@@ -251,7 +251,9 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan PartialRe
 func (c *Chat) newConn() (*wsConn, error) {
 	header := c.initHeader()
 	header.Add("accept-language", "en-US,en;q=0.9")
-	header.Add("origin", "https://edgeservices.bing.com")
+	// header.Add("origin", "https://edgeservices.bing.com")
+	header.Add("origin", "https://copilot.microsoft.com")
+	header.Add("host", "sydney.bing.com")
 
 	dialer := websocket.DefaultDialer
 	if c.Proxy != "" {
@@ -274,7 +276,7 @@ func (c *Chat) newConn() (*wsConn, error) {
 		return nil, err
 	}
 
-	if e := conn.WriteMessage(websocket.TextMessage, Schema); e != nil {
+	if e := conn.WriteMessage(websocket.TextMessage, schema); e != nil {
 		return nil, e
 	}
 
@@ -448,7 +450,7 @@ func (c *Chat) Delete() error {
 
 // 创建会话
 func (c *Chat) newConversation() (*Conversation, error) {
-	request, err := http.NewRequest(http.MethodGet, c.CreateURL, nil)
+	request, err := http.NewRequest(http.MethodGet, c.CreateURL+"?bundleVersion="+Version, nil)
 	if err != nil {
 		return nil, err
 	}
