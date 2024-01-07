@@ -402,6 +402,10 @@ func (c *Chat) Delete() error {
 		return err
 	}
 
+	if r.StatusCode != http.StatusOK {
+		return errors.New(r.Status)
+	}
+
 	marshal, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
@@ -464,6 +468,10 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	r, err := client.Do(request)
 	if err != nil {
 		return nil, err
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.New(r.Status)
 	}
 
 	marshal, err := io.ReadAll(r.Body)
