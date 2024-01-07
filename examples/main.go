@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bincooo/edge-api"
+	"github.com/bincooo/edge-api/util"
 	"io"
 )
 
@@ -34,6 +35,9 @@ func main() {
 		KievAuth = "FAB6BBRaTOJILtFsMkpLVWSG6AN6C/svRwNmAAAEgAAACNZgd665tz89OAR/PpV+2auHTEVdmOzj6VcZ7Ht3KQtJrGIOjBF5FkAAVwazcW/T0i3G9Lh75iqBxZXtEJK1G1EiqlSeb9Z22M5Y7dFM4xeSEZnLkPLHWxj/u0889GUd1MCNIev1phvAxR7M3YmfqZKq86BtVS3zzvHe0Q+SlOFyzTkE+I/V0wdxh9KTZuSwCSabyGE4vseajGOwZ3wIPPUDmNfW3P9mySufcIvVsCqsXsB/hMs9bmQjh3ZyzVVcTDhlCGBHZ/uupEjU7OgtnlIpK8sEvzZcTi35E7MvUQoit88McDJi23wFFnM81dfXI5kVueGs7NanBYaW+5PKPkzcS88KLsVUMV9JGKz1+EkYXUqyLMDI4DMMDE9Xzlty2VjRBmBQ8tWZ8Dwx+0E6RNpBbm2TaeRh7I1sQPVCvtky4YRVmutxkl+tuLWz4KHcRXEQsKYeisPN8yqAoIjcKeheOTFFCixjMMjNgOXiHF8x8vSk7ZDZwu+0SDb49mrfw1G6lQ6LdEGMTTZ86ltkUrxt26QpTMgq5HlwB5Fq1ZeJob99+IUEYHThZ92X8tNTODByCSb8Pp5asVn9M40V4fFzoF1Vk65iVccbJv98AiznSah992VF7rXUSqkbiOuhi5WX3Yq8LrCSFewfGqkKI9m2hfRc2coIvtJ/N52zyT3rsXy3QkjLaspt9qiPWs3KNAMCdHiEtslnMXgPjf7o727TIcADtt83I9ygOsaCwRXn3sCzfcdTfzifccfFz9SeJK1F8kAXgj00hKOWcz98EBnpdMViJUqG+3OYjyQu7UkUXHrZW7QeiF2x1XUaRZKUwhRAWEoOOSgwkDbBaP2HKL6yPZdwmXJk177nRItWGEXjdt6Dg1KvX4B7SHtOw+1XfbNaxtvHEMGw5LbjpheQGYWmQgGK14kvzD7Pxql2neLypW/zjB5x0BPXYNj/Z93OjkeuyirRVCD26yGcga6dSmsFdrAMSuFHyJsQXPClMzEYEPcNp9PUBOqGLtZPvMt+DZptur7oE/ZFgGYeiFVSbYIS2N/iwDJEjZiFsaWajTvdoATjl046rjPs4olBfxWCUSaiR4+YQGyPvpF2SRsO044skwOB0jFjZXY4N3tqGS21xd2IdwiQ3T1FOQjMxLp791k3UGYQ3ceQXJX0PtSbdYGHS2xc+KVWmUedq4kszHcS5occutGLWI4aT4g86prDcqLi+W7lIn02dZuvut277+h3adtTL9tL/obUdVOZQXT6G6VrEf1b21xHdQ+qBUKmJ/XBZFysiHxp8FesaXyNUIbbsKM7ihF8PEvYnvlUw1n/XkjzWE/8qW3uzmkaz9+gogCfbrKKtGk+cGqApUMsrHUvX9xMG7dxycooCKDSLryt3WY5OivnpnobWf2mkOMO5HQErJDq8vjbskSWq24euIzPJ96Kl3n0Sr7va+p96VSuULUUAHHaBjZS124+0pFzBylFqN0Ui/8d"
 		RwBf     = "r=1&ilt=1&ihpd=0&ispd=1&rc=3880&rb=3880&gb=0&rg=0&pc=3880&mtu=0&rbb=0.0&g=0&cid=&clo=0&v=7&l=2023-12-13T08:00:00.0000000Z&lft=0001-01-01T00:00:00.0000000&aof=0&o=0&p=bingcopilotwaitlist&c=MY00IA&t=8731&s=2023-02-09T05:43:58.6175399+00:00&ts=2023-12-14T04:15:45.1824280+00:00&rwred=0&wls=2&wlb=0&lka=0&lkt=0&aad=0&TH=&mta=0&e=DEXUb252ZC9SFK4xHrsOiXrviFzKvU4xTYFhd2fcf9zIYWoAHoZxCvabGCapPO9hHfELbWR8GYg-bXFEOg3W03lVS7W-BVEoFln5poMCU0o&A=&ccp=0&wle=1&ard=0001-01-01T00:00:00.0000000"
 	)
+	if err := util.SolveCaptcha2(cookie); err != nil {
+		panic(err)
+	}
 	options, err := edge.NewDefaultOptions(cookie, agency)
 	if err != nil {
 		panic(err)

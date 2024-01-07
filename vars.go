@@ -3,11 +3,10 @@ package edge
 import _ "embed"
 
 const (
-	Version        = "1.1342.3-cplt.12"
+	Version = "1.1418.9-suno"
+	//DefaultCreate  = "https://www.bing.com/turing/conversation/create"
 	DefaultCreate  = "https://copilot.microsoft.com/turing/conversation/create"
 	DefaultChatHub = "wss://sydney.bing.com/sydney/ChatHub"
-	//DefaultCreate  = "https://www.bing.com/turing/conversation/create"
-	//DefaultChatHub = "wss://sydney.bing.com/sydney/ChatHub"
 
 	Creative = "Creative"
 	Balanced = "Balanced"

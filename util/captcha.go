@@ -61,3 +61,34 @@ func SolveCaptcha(token string) error {
 		return errors.New("自动人机验证失败")
 	}
 }
+
+func SolveCaptcha2(token string) error {
+	params := []map[string]string{
+		{
+			"name":   "_U",
+			"value":  token,
+			"path":   "/",
+			"domain": ".bing.com",
+		},
+	}
+	marshal, err := json.Marshal(params)
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequest(http.MethodPost, baseURL, bytes.NewReader(marshal))
+	request.Header.Add("Content-Type", "application/json")
+	r, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return err
+	}
+	marshal, err = io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	if string(marshal) == "success" {
+		return nil
+	} else {
+		return errors.New("自动人机验证失败")
+	}
+}
