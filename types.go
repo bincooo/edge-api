@@ -1,49 +1,53 @@
 package edge
 
 import (
+	"fmt"
 	"sync"
 )
 
 type Options struct {
-	Headers     map[string]string
-	Retry       int
-	WebSock     string
-	CreateURL   string
-	Model       string
-	Temperature float32
-	Proxy       string
+	headers        map[string]string // 默认请求头
+	temperature    float32           // 温度调节：通过不同温度调节对话模式
+	kievRPSSecAuth string            //
+	rwBf           string            //
+	topicToE       bool              // topic警告是否作为错误返回
 
-	agency         string
-	KievRPSSecAuth string
-	RwBf           string
-	MUID           string
+	model   string // 对话模式
+	retry   int    // 重试次数
+	proxies string // 本地代理
+	middle  string // 中间转发地址
+	muId    string // 设备Id？
+	wss     string // 对话链接
+	create  string // 创建会话链接
 }
 
 type Chat struct {
 	Options
 	mu sync.Mutex
 
-	Session Conversation
-	TraceId string
+	session *Conversation
+}
+
+type KBlob struct {
+	BlobId          string `json:"blobId"`
+	ProcessedBlobId string `json:"processedBlobId"`
 }
 
 type Conversation struct {
 	ConversationId string `json:"conversationId"`
 	ClientId       string `json:"clientId"`
-	// Signature      string `json:"conversationSignature"`
 
 	Result struct {
 		Value   string      `json:"value"`
 		Message interface{} `json:"message"`
 	} `json:"result"`
 
-	TraceId      string `json:"-"`
-	InvocationId int    `json:"-"`
-	AccessToken  string `json:"-"`
+	traceId      string
+	invocationId int
+	accessToken  string
 }
 
-type PartialResponse struct {
-	Error      error  `json:"-"`
+type partialResponse struct {
 	InnerError string `json:"error"`
 
 	Type         int    `json:"type"`
@@ -51,13 +55,7 @@ type PartialResponse struct {
 
 	Arguments []struct {
 		RequestId string `json:"requestId"`
-
-		//Throttling *struct {
-		//	Max  int `json:"maxNumUserMessagesInConversation"`
-		//	Used int `json:"numUserMessagesInConversation"`
-		//} `json:"throttling"`
-
-		Messages *[]struct {
+		Messages  *[]struct {
 			Text        string `json:"text"`
 			HiddenText  string `json:"hiddenText"`
 			MessageType string `json:"messageType"`
@@ -82,7 +80,29 @@ type PartialResponse struct {
 			Used int `json:"numUserMessagesInConversation"`
 		} `json:"throttling"`
 	} `json:"item"`
+}
 
-	RawData []byte `json:"-"`
-	Text    string `json:"-"`
+type ChatMessage map[string]string
+
+func (c ChatMessage) PushImage(image *KBlob) {
+	if image == nil {
+		return
+	}
+	c["imageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.ProcessedBlobId
+	c["originalImageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.BlobId
+}
+
+type ChatResponse struct {
+	Text    string
+	Error   *ChatError
+	RawData []byte
+}
+
+type ChatError struct {
+	Action  string
+	Message error
+}
+
+func (c ChatError) Error() string {
+	return fmt.Sprintf("[EDGE-API::%s] %v", c.Action, c.Message)
 }

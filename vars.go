@@ -16,13 +16,13 @@ const (
 	Precise  = "Precise"
 	Sydney   = "Sydney"
 
-	Delimiter = "\u001E"
+	delimiter = '\u001E'
 )
 
 //go:embed chat.json
 var chatHub []byte
 
-var Version = "1.1467.6"
+var Version = "1.1482.6"
 
 var (
 	sliceIds = []string{
