@@ -8,8 +8,7 @@ import (
 )
 
 const (
-	cookie = "xxx"
-	agency = ""
+	cookie = "1VzW0-qcUhC-XBS6gZ-Y2hggKE6FX9ge8NI5GfbCXpO5vCrh8C5SZ6kKzUu7IZM1dCevyryxmK96Kl5kYVfAGl9m0Mcrmy8oThwPocaaXuAOUVpEDbF5AmJKrbwz0Ge3XCbtlKNwA24yfoMQYCXK85GMRCSTiHogXUA3unf7tFcFsszdWeBGSz1-J3OkWL1QzRJyS3YRJaMwjxu6CUw_4EQ"
 
 	KievAuth = "xxx"
 	RwBf     = "xxx"
@@ -35,14 +34,14 @@ var pMessages = []edge.ChatMessage{
 }
 
 func Test_messages(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, agency)
+	options, err := edge.NewDefaultOptions(cookie, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	options.KievAuth(KievAuth, RwBf)
+	//options.KievAuth(KievAuth, RwBf)
 	options.Proxies("http://127.0.0.1:7890")
 	// Sydney 模式需要自行维护历史对话
-	options.Model(edge.Creative)
+	options.Model(edge.ModelCreative)
 	options.Temperature(1.0)
 	options.TopicToE(true)
 	chat := edge.New(options)
@@ -79,7 +78,7 @@ func Test_messages(t *testing.T) {
 		"author": "user",
 		"text":   prompt,
 	}
-	message.PushImage(image)
+	// message.PushImage(image)
 	pMessages = append(pMessages, message)
 	pMessages = append(pMessages, edge.ChatMessage{
 		"author": "bot",
@@ -117,19 +116,20 @@ func resolve(t *testing.T, partialResponse chan edge.ChatResponse) string {
 		msg += message.Text
 		fmt.Println(message.Text)
 		fmt.Println("===============")
+		if message.T != nil {
+			fmt.Printf("%d / %d\n", message.T.Max, message.T.Used)
+		}
 	}
 }
 
 func Test_image(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, agency)
+	options, err := edge.NewDefaultOptions(cookie, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	options.KievAuth(KievAuth, RwBf)
 	options.Proxies("http://127.0.0.1:7890")
-	options.Model(edge.Sydney)
-	options.Temperature(1.0)
-	options.TopicToE(true)
+	options.Model(edge.ModelSydney)
 	chat := edge.New(options)
 	file := "/Users/bincooo/Desktop/Screenshot 2023-11-11 at 11.21.23.png"
 	kb, err := chat.LoadImage(file)

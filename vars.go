@@ -11,10 +11,10 @@ const (
 	DefaultCreate  = "https://copilot.microsoft.com/turing/conversation/create"
 	DefaultChatHub = "wss://sydney.bing.com/sydney/ChatHub"
 
-	Creative = "Creative"
-	Balanced = "Balanced"
-	Precise  = "Precise"
-	Sydney   = "Sydney"
+	ModelCreative = "Creative"
+	ModelBalanced = "Balanced"
+	ModelPrecise  = "Precise"
+	ModelSydney   = "Sydney"
 
 	delimiter = '\u001E'
 )

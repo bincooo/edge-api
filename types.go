@@ -82,20 +82,17 @@ type partialResponse struct {
 	} `json:"item"`
 }
 
-type ChatMessage map[string]string
-
-func (c ChatMessage) PushImage(image *KBlob) {
-	if image == nil {
-		return
-	}
-	c["imageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.ProcessedBlobId
-	c["originalImageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.BlobId
-}
+type ChatMessage = map[string]string
 
 type ChatResponse struct {
 	Text    string
 	Error   *ChatError
 	RawData []byte
+
+	T *struct {
+		Max  int
+		Used int
+	}
 }
 
 type ChatError struct {

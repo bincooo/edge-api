@@ -57,7 +57,7 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 		wss:    ws,
 		create: bu,
 		middle: middle,
-		model:  Creative,
+		model:  ModelCreative,
 		headers: map[string]string{
 			"Cookie": co,
 		},
@@ -123,6 +123,14 @@ func New(opts *Options) Chat {
 	return Chat{Options: *opts}
 }
 
+func (c *Chat) GetSession() Conversation {
+	if c.session == nil {
+		return Conversation{}
+	} else {
+		return *c.session
+	}
+}
+
 // 对话并回复
 //
 // ctx Context 控制器，promp string 当前对话，image KBlob 图片信息，previousMessages []map[string]string 历史记录
@@ -141,7 +149,7 @@ func New(opts *Options) Chat {
 //	]
 func (c *Chat) Reply(ctx context.Context, prompt string, image *KBlob, previousMessages []ChatMessage) (chan ChatResponse, error) {
 	c.mu.Lock()
-	if c.session == nil || c.session.ConversationId == "" || c.model == Sydney {
+	if c.session == nil || c.session.ConversationId == "" || c.model == ModelSydney {
 		count := 1
 	label:
 		conv, err := c.newConversation()
@@ -258,6 +266,13 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 				message <- result
 			}
 			conn.IsClose = true
+			if t := response.Item.Throttling; t != nil {
+				result.T = &struct {
+					Max  int
+					Used int
+				}{t.Max, t.Used}
+			}
+
 			if messages := response.Item.Messages; !normal && messages != nil && len(*messages) > 0 {
 				topicMessage := findTopicMessage(*messages)
 				if topicMessage != "" {
@@ -394,16 +409,16 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 
 	messageId := uuid.NewString()
 	if model == "" {
-		model = Creative
+		model = ModelCreative
 	}
-	if model == Sydney {
+	if model == ModelSydney {
 		var tone string
 		if c.temperature > .6 {
-			tone = Creative
+			tone = ModelCreative
 		} else if c.temperature > .3 {
-			tone = Balanced
+			tone = ModelBalanced
 		} else {
-			tone = Precise
+			tone = ModelPrecise
 		}
 		messageTypes := hub["allowedMessageTypes"].([]any)
 		h := func(str string) func(any) bool {
@@ -443,7 +458,7 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 	}
 	message["text"] = prompt
 
-	if conv.invocationId == 0 || model == Sydney {
+	if conv.invocationId == 0 || model == ModelSydney {
 		// 处理历史消息
 		hub["isStartOfSession"] = true
 		if len(previousMessages) > 0 {
