@@ -16,11 +16,21 @@ const (
 	ModelPrecise  = "Precise"
 	ModelSydney   = "Sydney"
 
+	PluginShop      = "Shop"
+	PluginInstacart = "Instacart"
+	PluginOpenTable = "OpenTable"
+	PluginKlarna    = "Klarna"
+	PluginSearch    = "Search"
+	PluginKayak     = "Kayak"
+
 	delimiter = '\u001E'
 )
 
 //go:embed chat.json
 var chatHub []byte
+
+//go:embed notebook.json
+var nbkHub []byte
 
 var Version = "1.1482.6"
 

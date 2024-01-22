@@ -11,6 +11,8 @@ type Options struct {
 	kievRPSSecAuth string            //
 	rwBf           string            //
 	topicToE       bool              // topic警告是否作为错误返回
+	notebook       bool              // 文档模式
+	plugins        []string          // 插件
 
 	model   string // 对话模式
 	retry   int    // 重试次数
@@ -48,12 +50,12 @@ type Conversation struct {
 }
 
 type partialResponse struct {
-	InnerError string `json:"error"`
+	Error string `json:"error"`
 
 	Type         int    `json:"type"`
 	InvocationId string `json:"invocationId"`
 
-	Arguments []struct {
+	Args []struct {
 		RequestId string `json:"requestId"`
 		Messages  *[]struct {
 			Text        string `json:"text"`
@@ -75,7 +77,7 @@ type partialResponse struct {
 			SpokenText string `json:"spokenText"`
 		} `json:"messages"`
 
-		Throttling *struct {
+		T *struct {
 			Max  int `json:"maxNumUserMessagesInConversation"`
 			Used int `json:"numUserMessagesInConversation"`
 		} `json:"throttling"`

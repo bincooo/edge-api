@@ -64,34 +64,46 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 	}, nil
 }
 
-// 设置中间转发地址
-func (opts *Options) Middle(middle string) {
-	opts.middle = middle
-}
-
 // 设置本地代理地址
-func (opts *Options) Proxies(proxies string) {
+func (opts *Options) Proxies(proxies string) *Options {
 	opts.proxies = proxies
+	return opts
 }
 
 // 设置对话模式
-func (opts *Options) Model(model string) {
+func (opts *Options) Model(model string) *Options {
 	opts.model = model
+	return opts
 }
 
 // 温度调节 0.0~1.0, Sydney 模式生效
-func (opts *Options) Temperature(temperature float32) {
+func (opts *Options) Temperature(temperature float32) *Options {
 	opts.temperature = temperature
+	return opts
 }
 
 // topic警告是否作为错误返回，默认为false
-func (opts *Options) TopicToE(flag bool) {
+func (opts *Options) TopicToE(flag bool) *Options {
 	opts.topicToE = flag
+	return opts
 }
 
-func (opts *Options) KievAuth(kievRPSSecAuth, rwBf string) {
+// 文档模式
+func (opts *Options) Notebook(flag bool) *Options {
+	opts.notebook = flag
+	return opts
+}
+
+// 插件
+func (opts *Options) Plugins(plugins ...string) *Options {
+	opts.plugins = plugins
+	return opts
+}
+
+func (opts *Options) KievAuth(kievRPSSecAuth, rwBf string) *Options {
 	opts.kievRPSSecAuth = kievRPSSecAuth
 	opts.rwBf = rwBf
+	return opts
 }
 
 // 创建会话实例
@@ -266,7 +278,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 				message <- result
 			}
 			conn.IsClose = true
-			if t := response.Item.Throttling; t != nil {
+			if t := response.Item.T; t != nil {
 				result.T = &struct {
 					Max  int
 					Used int
@@ -293,22 +305,22 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 		// 消息响应失败
 		if response.Type == 3 {
 			conn.IsClose = true
-			result.Error = &ChatError{"resolve", errors.New(response.InnerError)}
+			result.Error = &ChatError{"resolve", errors.New(response.Error)}
 			message <- result
 			return true
 		}
 
-		if len(response.Arguments) == 0 {
+		if len(response.Args) == 0 {
 			return false
 		}
 
 		// 处理消息
-		argument := response.Arguments[0]
-		if argument.Messages == nil || len(*argument.Messages) == 0 {
+		args0 := response.Args[0]
+		if args0.Messages == nil || len(*args0.Messages) == 0 {
 			return false
 		}
 
-		m := (*argument.Messages)[0]
+		m := (*args0.Messages)[0]
 		if m.MessageType != "" && strings.Contains("InternalSearchQuery,InternalSearchResult,InternalLoaderMessage", m.MessageType) {
 			return false
 		}
@@ -403,7 +415,11 @@ func (c *Chat) newConn() (*wsConn, error) {
 // 构建对接参数
 func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBlob, previousMessages []ChatMessage) (map[string]any, error) {
 	var hub map[string]any
-	if err := json.Unmarshal(chatHub, &hub); err != nil {
+	if c.notebook {
+		if err := json.Unmarshal(nbkHub, &hub); err != nil {
+			return nil, err
+		}
+	} else if err := json.Unmarshal(chatHub, &hub); err != nil {
 		return nil, err
 	}
 
@@ -432,11 +448,30 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 		messageTypes = del(messageTypes, h("InternalSearchResult"))
 		hub["allowedMessageTypes"] = messageTypes
 		hub["tone"] = tone
+
+		if !c.notebook {
+			hub["sliceIds"] = sliceIds
+		}
 	} else {
 		hub["tone"] = model
 	}
 
-	hub["sliceIds"] = sliceIds
+	plugins, err := c.LoadPlugins(c.plugins...)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(plugins) > 0 {
+		_plugins := make([]map[string]any, 0)
+		for _, plugin := range plugins {
+			_plugins = append(_plugins, map[string]any{
+				"id":       plugin,
+				"category": 1,
+			})
+		}
+		hub["plugins"] = _plugins
+	}
+
 	hub["traceId"] = conv.traceId
 	hub["requestId"] = messageId
 	hub["conversationId"] = conv.ConversationId
@@ -546,6 +581,61 @@ func (c *Chat) Delete() error {
 	return nil
 }
 
+// 获取bing插件ID。需要包含Search，否则无效。
+// 可用插件 Shop 、Instacart、OpenTable、Klarna、Search、Kayak
+func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
+	if len(names) == 0 {
+		return make([]string, 0), nil
+	}
+
+	middle := c.middle
+	if strings.Contains(middle, "https://copilot.microsoft.com") {
+		middle = "https://www.bing.com"
+	}
+
+	request, err := http.NewRequest(http.MethodGet, middle+"/codex/plugins/available/get", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header = c.newHeader()
+	client, err := c.newClient()
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.New(r.Status)
+	}
+
+	marshal, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]any
+	if e := json.Unmarshal(marshal, &result); e != nil {
+		return nil, e
+	}
+
+	if result["IsSuccess"] == true {
+		if value, ok := result["Value"].([]interface{}); ok {
+			for _, item := range value {
+				object := item.(map[string]interface{})
+				if contains(names, object["Name"].(string)) {
+					plugins = append(plugins, object["Id"].(string))
+				}
+			}
+		}
+	}
+	return
+}
+
 // 创建会话
 func (c *Chat) newConversation() (*Conversation, error) {
 	request, err := http.NewRequest(http.MethodGet, c.create+"?bundleVersion="+Version, nil)
@@ -645,4 +735,25 @@ func del[T any](slice []T, condition func(item T) bool) []T {
 		}
 	}
 	return slice
+}
+
+// 判断切片是否包含子元素
+func contains[T comparable](slice []T, t T) bool {
+	return containFor(slice, func(item T) bool {
+		return item == t
+	})
+}
+
+// 判断切片是否包含子元素， condition：自定义判断规则
+func containFor[T comparable](slice []T, condition func(item T) bool) bool {
+	if len(slice) == 0 {
+		return false
+	}
+
+	for idx := 0; idx < len(slice); idx++ {
+		if condition(slice[idx]) {
+			return true
+		}
+	}
+	return false
 }

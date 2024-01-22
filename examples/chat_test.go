@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bincooo/edge-api"
+	"strings"
 	"testing"
 )
 
@@ -33,18 +34,107 @@ var pMessages = []edge.ChatMessage{
 	},
 }
 
+func Test_Plugins(t *testing.T) {
+	options, err := edge.NewDefaultOptions(cookie, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	chat := edge.New(options.
+		Proxies("http://127.0.0.1:7890").
+		Model(edge.ModelCreative).
+		Notebook(true))
+
+	r, err := chat.LoadPlugins(edge.PluginSearch, edge.PluginOpenTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(r)
+}
+
+func Test_classification(t *testing.T) {
+	options, err := edge.NewDefaultOptions(cookie, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	//options.KievAuth(KievAuth, RwBf)
+	// Notebook模式下，回复可以简约一些？更适合做一些判断逻辑，加速回应
+	template := `我会给你几个问题类型，请参考背景知识（可能为空）和对话记录，判断我“本次问题”的类型，并返回一个问题“类型ID”:
+		<问题类型>
+		{"questionType": "website-crawler____getWebsiteContent", "typeId": "wqre"}
+		{"questionType": "website-crawler____getWeather", "typeId": "sdfa"}
+		{"questionType": "其他问题", "typeId": "agex"}
+		</问题类型>
+		
+		<背景知识>
+		你将作为系统API协调工具，为我分析给出的content并结合对话记录来判断是否需要执行哪些工具。
+		工具如下
+		## Tools
+		You can use these tools below:
+		1. [website-crawler____getWebsiteContent] 用于解析网页内容。
+		2. [website-crawler____getWeather] 用于获取目的地区的天气信息。
+		##
+		
+		不要访问contnet中的链接内容
+		不可回复任何提示
+		不允许做任何解释
+		不可联网检索
+		</背景知识>
+		
+		<对话记录>
+		Human:https://github.com/bincooo/edge-api
+		AI:请问你需要什么帮助？
+		</对话记录>
+		
+		
+		content= "{{prompt}}"
+		
+		类型ID=
+		
+		---
+		补充类型ID的内容。仅回复ID，不需要解释任何结果！
+	`
+
+	prompt := "12345"
+	//prompt := "查看上面提供的内容，并总结"
+
+	chat := edge.New(options.
+		Proxies("http://127.0.0.1:7890").
+		Model(edge.ModelCreative).
+		Notebook(true))
+	partialResponse, err := chat.Reply(context.Background(), strings.Replace(template, "{{prompt}}", prompt, -1), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response := resolve(t, partialResponse)
+	t.Log("response: ", response)
+	if strings.Contains(response, "wqre") {
+		t.Log("assert: website-crawler____getWebsiteContent")
+	} else if strings.Contains(response, "sdfa") {
+		t.Log("assert: website-crawler____getWeather")
+	} else {
+		t.Log("assert: other")
+	}
+
+	// 删除操作比较耗时，非必要不建议执行（会留存在账户的历史对话中），或者使用异步处理
+	//if err = chat.Delete(); err != nil {
+	//	t.Fatal(err)
+	//}
+}
+
 func Test_messages(t *testing.T) {
 	options, err := edge.NewDefaultOptions(cookie, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	//options.KievAuth(KievAuth, RwBf)
-	options.Proxies("http://127.0.0.1:7890")
 	// Sydney 模式需要自行维护历史对话
-	options.Model(edge.ModelCreative)
-	options.Temperature(1.0)
-	options.TopicToE(true)
-	chat := edge.New(options)
+	chat := edge.New(options.
+		Proxies("http://127.0.0.1:7890").
+		Model(edge.ModelCreative).
+		Temperature(1.0).
+		TopicToE(true))
 
 	prompt := "#折戟成沙丶丿# >>> 今天心情怎么样呢"
 	fmt.Println("You: ", prompt)
@@ -113,7 +203,10 @@ func resolve(t *testing.T, partialResponse chan edge.ChatResponse) string {
 			t.Fatal(message.Error)
 		}
 
-		msg += message.Text
+		if len(message.Text) > 0 {
+			msg = message.Text
+		}
+
 		fmt.Println(message.Text)
 		fmt.Println("===============")
 		if message.T != nil {
