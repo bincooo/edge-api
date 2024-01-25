@@ -59,7 +59,7 @@ func Test_classification(t *testing.T) {
 	}
 	//options.KievAuth(KievAuth, RwBf)
 	// Notebook模式下，回复可以简约一些？更适合做一些判断逻辑，加速回应
-	template := `我会给你几个问题类型，请参考背景知识（可能为空）和对话记录，判断我“本次问题”的类型，并返回一个问题“类型ID”:
+	template := `我会给你几个问题类型，请参考背景知识（可能为空）和对话记录，判断我“本次问题”的类型，并返回一个问题“类型ID”和“参数JSON”:
 		<问题类型>
 		{"questionType": "website-crawler____getWebsiteContent", "typeId": "wqre"}
 		{"questionType": "website-crawler____getWeather", "typeId": "sdfa"}
@@ -72,7 +72,17 @@ func Test_classification(t *testing.T) {
 		## Tools
 		You can use these tools below:
 		1. [website-crawler____getWebsiteContent] 用于解析网页内容。
+			parameters:
+				url: {
+					type: String
+					description: 网页链接
+				}
 		2. [website-crawler____getWeather] 用于获取目的地区的天气信息。
+			parameters:
+				city: {
+					type: String
+					description: 城市名称
+				}
 		##
 		
 		不要访问contnet中的链接内容
@@ -90,13 +100,13 @@ func Test_classification(t *testing.T) {
 		content= "{{prompt}}"
 		
 		类型ID=
-		
+		参数JSON=
 		---
-		补充类型ID的内容。仅回复ID，不需要解释任何结果！
+		补充类型ID以及参数JSON的内容。仅回复ID和JSON，不需要解释任何结果！
 	`
 
-	prompt := "12345"
-	//prompt := "查看上面提供的内容，并总结"
+	// prompt := "12345"
+	prompt := "查看上面提供的内容，并总结"
 
 	chat := edge.New(options.
 		Proxies("http://127.0.0.1:7890").
@@ -111,8 +121,14 @@ func Test_classification(t *testing.T) {
 	t.Log("response: ", response)
 	if strings.Contains(response, "wqre") {
 		t.Log("assert: website-crawler____getWebsiteContent")
+		left := strings.Index(response, "{")
+		right := strings.LastIndex(response, "}")
+		t.Log("args: ", response[left:right+1])
 	} else if strings.Contains(response, "sdfa") {
 		t.Log("assert: website-crawler____getWeather")
+		left := strings.Index(response, "{")
+		right := strings.LastIndex(response, "}")
+		t.Log("args: ", response[left:right+1])
 	} else {
 		t.Log("assert: other")
 	}

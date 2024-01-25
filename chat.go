@@ -325,6 +325,18 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 			return false
 		}
 
+		if containsTopicToE(m.Text) {
+			if !normal && c.topicToE {
+				result.Error = &ChatError{"resolve", errors.New(m.Text)}
+				message <- result
+				return true
+			}
+
+			if normal {
+				return true
+			}
+		}
+
 		result.Text = m.Text
 		// 有正常输出，则忽略TopicMessage警告
 		if len(result.Text) > 0 {
@@ -347,6 +359,19 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 			}
 		}
 	}
+}
+
+func containsTopicToE(value string) bool {
+	blocks := []string{
+		"That’s on me",
+		"different topic",
+	}
+	for _, block := range blocks {
+		if strings.Contains(value, block) {
+			return true
+		}
+	}
+	return false
 }
 
 func findTopicMessage(messages []struct {
