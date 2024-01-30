@@ -41,7 +41,11 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 		}
 
 		bu = middle + "/turing/conversation/create"
-		ws = "wss://" + u.Hostname() + "/sydney/ChatHub"
+		if u.Scheme == "http" {
+			ws = "ws://" + u.Host + u.Path + "/sydney/ChatHub"
+		} else {
+			ws = "wss://" + u.Host + u.Path + "/sydney/ChatHub"
+		}
 	} else {
 		bu = DefaultCreate
 		ws = DefaultChatHub
@@ -399,8 +403,10 @@ func (c *Chat) newConn() (*wsConn, error) {
 	header := c.newHeader()
 	header.Add("accept-language", "en-US,en;q=0.9")
 	// header.Add("origin", "https://edgeservices.bing.com")
-	header.Add("origin", "https://copilot.microsoft.com")
-	header.Add("host", "sydney.bing.com")
+	if c.middle == "" { // 有些中间转发地址会检查源并拒绝，不需要设置origin、host
+		header.Add("origin", "https://copilot.microsoft.com")
+		header.Add("host", "sydney.bing.com")
+	}
 
 	dialer := websocket.DefaultDialer
 	if c.proxies != "" {

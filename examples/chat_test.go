@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cookie = "1VzW0-qcUhC-XBS6gZ-Y2hggKE6FX9ge8NI5GfbCXpO5vCrh8C5SZ6kKzUu7IZM1dCevyryxmK96Kl5kYVfAGl9m0Mcrmy8oThwPocaaXuAOUVpEDbF5AmJKrbwz0Ge3XCbtlKNwA24yfoMQYCXK85GMRCSTiHogXUA3unf7tFcFsszdWeBGSz1-J3OkWL1QzRJyS3YRJaMwjxu6CUw_4EQ"
+	cookie = "1fUHC2Yl9KH9ys47oNnIuGCFwzE-HlIb-NFmccmMfzroPu2vd3v1UbpoetLjGxAfGuNmaN5v7BgKXheHoZgLJx09N6JY4mDu0HFt9NFGIKaRipEsD1nxHDj8mB5nYDKYc91_XDOq38rx2glrHY0n_8f6Q-VcCnSv2bcePoY2sxLDsHZ0GrXzLxtrAdM4qWrV8ZBa_qdaioBP1eL62u1gRZg"
 
 	KievAuth = "xxx"
 	RwBf     = "xxx"
@@ -140,7 +140,7 @@ func Test_classification(t *testing.T) {
 }
 
 func Test_messages(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, "")
+	options, err := edge.NewDefaultOptions(cookie, "https://bincooo-single-proxy.hf.space/copilot")
 	if err != nil {
 		t.Fatal(err)
 	}
