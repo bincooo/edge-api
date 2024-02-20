@@ -533,7 +533,7 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 		} else {
 			delete(hub, "previousMessages")
 		}
-	} else if model != "Sydney" {
+	} else {
 		hub["isStartOfSession"] = false
 		delete(hub, "previousMessages")
 	}
