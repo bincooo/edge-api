@@ -32,7 +32,7 @@ var chatHub []byte
 //go:embed notebook.json
 var nbkHub []byte
 
-var Version = "1.1525.2"
+var Version = "1.1586.1"
 
 var (
 	sliceIds = []string{

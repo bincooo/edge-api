@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cookie = "1fUHC2Yl9KH9ys47oNnIuGCFwzE-HlIb-NFmccmMfzroPu2vd3v1UbpoetLjGxAfGuNmaN5v7BgKXheHoZgLJx09N6JY4mDu0HFt9NFGIKaRipEsD1nxHDj8mB5nYDKYc91_XDOq38rx2glrHY0n_8f6Q-VcCnSv2bcePoY2sxLDsHZ0GrXzLxtrAdM4qWrV8ZBa_qdaioBP1eL62u1gRZg"
+	cookie = "xxx"
 
 	KievAuth = "xxx"
 	RwBf     = "xxx"
@@ -35,7 +35,7 @@ var pMessages = []edge.ChatMessage{
 }
 
 func Test_Plugins(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, "")
+	options, err := edge.NewDefaultOptions(cookie, "https://bincooo-single-proxy.hf.space/copilot")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,17 +134,17 @@ func Test_classification(t *testing.T) {
 	}
 
 	// 删除操作比较耗时，非必要不建议执行（会留存在账户的历史对话中），或者使用异步处理
-	//if err = chat.Delete(); err != nil {
-	//	t.Fatal(err)
-	//}
+	if err = chat.Delete(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func Test_messages(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, "https://bincooo-single-proxy.hf.space/copilot")
+	options, err := edge.NewDefaultOptions(cookie, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	//options.KievAuth(KievAuth, RwBf)
+	options.KievAuth(KievAuth, RwBf)
 	// Sydney 模式需要自行维护历史对话
 	chat := edge.New(options.
 		Proxies("http://127.0.0.1:7890").

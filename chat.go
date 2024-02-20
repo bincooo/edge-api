@@ -480,9 +480,9 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 		hub["allowedMessageTypes"] = messageTypes
 		hub["tone"] = tone
 
-		if !c.notebook {
-			hub["sliceIds"] = sliceIds
-		}
+		//if !c.notebook {
+		//	hub["sliceIds"] = sliceIds
+		//}
 	} else {
 		hub["tone"] = model
 	}
