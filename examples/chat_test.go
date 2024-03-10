@@ -35,13 +35,13 @@ var pMessages = []edge.ChatMessage{
 }
 
 func Test_Plugins(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, "https://bincooo-single-proxy.hf.space/copilot")
+	options, err := edge.NewDefaultOptions(cookie, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	chat := edge.New(options.
-		Proxies("http://127.0.0.1:7890").
+		Proxies("socks5://127.0.0.1:7890").
 		Model(edge.ModelCreative).
 		Notebook(true))
 
@@ -109,7 +109,7 @@ func Test_classification(t *testing.T) {
 	prompt := "查看上面提供的内容，并总结"
 
 	chat := edge.New(options.
-		Proxies("http://127.0.0.1:7890").
+		Proxies("socks5://127.0.0.1:7890").
 		Model(edge.ModelCreative).
 		Notebook(true))
 	partialResponse, err := chat.Reply(context.Background(), strings.Replace(template, "{{prompt}}", prompt, -1), nil, nil)
@@ -147,7 +147,7 @@ func Test_messages(t *testing.T) {
 	options.KievAuth(KievAuth, RwBf)
 	// Sydney 模式需要自行维护历史对话
 	chat := edge.New(options.
-		Proxies("http://127.0.0.1:7890").
+		Proxies("socks5://127.0.0.1:7890").
 		Model(edge.ModelCreative).
 		Temperature(1.0).
 		TopicToE(true))
@@ -237,7 +237,7 @@ func Test_image(t *testing.T) {
 		t.Fatal(err)
 	}
 	options.KievAuth(KievAuth, RwBf)
-	options.Proxies("http://127.0.0.1:7890")
+	options.Proxies("socks5://127.0.0.1:7890")
 	options.Model(edge.ModelSydney)
 	chat := edge.New(options)
 	file := "/Users/bincooo/Desktop/Screenshot 2023-11-11 at 11.21.23.png"

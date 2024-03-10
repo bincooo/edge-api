@@ -3,11 +3,14 @@ package edge
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/RomiChan/websocket"
 	"github.com/google/uuid"
+	"golang.org/x/net/proxy"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -414,9 +417,25 @@ func (c *Chat) newConn() (*wsConn, error) {
 		if err != nil {
 			return nil, err
 		}
-		dialer = &websocket.Dialer{
-			Proxy:            http.ProxyURL(purl),
-			HandshakeTimeout: 45 * time.Second,
+
+		if purl.Scheme == "http" || purl.Scheme == "https" {
+			dialer = &websocket.Dialer{
+				Proxy:            http.ProxyURL(purl),
+				HandshakeTimeout: 45 * time.Second,
+			}
+		}
+
+		if purl.Scheme == "socks5" {
+			dialer = &websocket.Dialer{
+				NetDialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+					d, e := proxy.SOCKS5("tcp", purl.Host, nil, proxy.Direct)
+					if e != nil {
+						return nil, e
+					}
+					return d.Dial(network, addr)
+				},
+				HandshakeTimeout: 45 * time.Second,
+			}
 		}
 	}
 
@@ -553,7 +572,7 @@ func (c *Chat) Delete() error {
 	}
 
 	request.Header = c.newHeader()
-	client, err := c.newClient()
+	client, err := newClient(c.proxies)
 	if err != nil {
 		return &ChatError{"delete", err}
 	}
@@ -600,10 +619,7 @@ func (c *Chat) Delete() error {
 	request.Header = c.newHeader()
 	request.Header.Set("Authorization", "Bearer "+authorization)
 	request.Header.Set("Content-Type", "application/json")
-	client, err = c.newClient()
-	if err != nil {
-		return &ChatError{"delete", err}
-	}
+
 	r, err = client.Do(request)
 	if err != nil {
 		return &ChatError{"delete", err}
@@ -630,7 +646,7 @@ func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
 	}
 
 	request.Header = c.newHeader()
-	client, err := c.newClient()
+	client, err := newClient(c.proxies)
 	if err != nil {
 		return nil, err
 	}
@@ -675,7 +691,7 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	}
 
 	request.Header = c.newHeader()
-	client, err := c.newClient()
+	client, err := newClient(c.proxies)
 	if err != nil {
 		return nil, err
 	}
@@ -715,19 +731,44 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	return &conv, nil
 }
 
-func (c *Chat) newClient() (*http.Client, error) {
+func newClient(proxies string) (*http.Client, error) {
 	client := http.DefaultClient
-	if c.proxies != "" {
-		purl, err := url.Parse(c.proxies)
+	if proxies != "" {
+		proxiesUrl, err := url.Parse(proxies)
 		if err != nil {
 			return nil, err
 		}
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(purl),
-			},
+
+		if proxiesUrl.Scheme == "http" || proxiesUrl.Scheme == "https" {
+			client = &http.Client{
+				Transport: &http.Transport{
+					Proxy: http.ProxyURL(proxiesUrl),
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				},
+			}
+		}
+
+		// socks5://127.0.0.1:7890
+		if proxiesUrl.Scheme == "socks5" {
+			client = &http.Client{
+				Transport: &http.Transport{
+					DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+						dialer, e := proxy.SOCKS5("tcp", proxiesUrl.Host, nil, proxy.Direct)
+						if e != nil {
+							return nil, e
+						}
+						return dialer.Dial(network, addr)
+					},
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				},
+			}
 		}
 	}
+
 	return client, nil
 }
 
