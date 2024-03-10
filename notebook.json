@@ -1,6 +1,6 @@
 {
-  "source":"cib",
-  "optionsSets":[
+  "source": "cib",
+  "optionsSets": [
     "nlu_direct_response_filter",
     "deepleo",
     "disable_emoji_spoken_text",
@@ -9,17 +9,14 @@
     "dv3sugg",
     "iyxapbing",
     "iycapbing",
-    "enable_user_consent",
-    "fluxmemcst",
     "h3precise",
-    "gndlogcf",
-    "gptvnoex",
+    "uquopt",
     "eredirecturl",
     "clgalileo",
     "gencontentv3",
     "prjupy"
   ],
-  "allowedMessageTypes":[
+  "allowedMessageTypes": [
     "ActionRequest",
     "Chat",
     "ConfirmationCard",
@@ -35,66 +32,94 @@
     "SemanticSerp",
     "GenerateContentQuery",
     "SearchQuery",
-    "GeneratedCode"
+    "GeneratedCode",
+    "InternalTasksMessage"
   ],
-  "sliceIds":[
-    "sappbcbc",
-    "inlineadsv2ho-prod",
-    "fltltst2",
-    "bgstreamcf",
-    "galleryranker",
-    "zinwf",
-    "132dxccaches0",
-    "suppsm240hm",
-    "srchqryfix",
-    "suppsm240-t",
+  "sliceIds": [
+    "bgstream",
+    "supllmnfe",
+    "fltltst2c",
+    "stcheckcf",
+    "invldrqcf",
+    "v6voice",
+    "vnextvoice",
+    "romiccf",
+    "scmcbase",
     "cmcpupsalltf",
-    "proupsalltf",
-    "213memrev",
-    "0209bicv3",
-    "205dcl1bt15",
-    "927storev2s0",
-    "fpallsticy",
-    "sapsgrds0",
-    "1pgptwdes",
-    "newzigpt",
-    "0131wcpbkoss0",
-    "cacfrwebt3cf",
-    "sswebtop3cf"
+    "thdnsrchcf",
+    "220dcl1s0",
+    "0215wcrwips0",
+    "0130gpt4t",
+    "bingfccf",
+    "0221pluginshyb",
+    "0225unsticky1",
+    "0228scs",
+    "scprompt1",
+    "defquerycf",
+    "cacfastapis",
+    "defgrey",
+    "3022tpvs0"
   ],
-  "verbosity":"verbose",
-  "scenario":"SERP",
-  "plugins":[
+  "verbosity": "verbose",
+  "scenario": "SERP",
+  "plugins": [
 
   ],
-  "traceId":"65d452d3665e4b51bf2468889ea5317f",
-  "conversationHistoryOptionsSets":[
+  "traceId": "65ed39cc10414c198cf13f81afac45fc",
+  "conversationHistoryOptionsSets": [
     "autosave",
     "savemem",
     "uprofupd",
     "uprofgen"
   ],
-  "gptId":"copilot",
-  "isStartOfSession":true,
-  "requestId":"b67ae6dd-2881-ff7b-56ad-480ad65b8cf1",
-  "message":{
-    "locale":"en-US",
-    "market":"en-US",
-    "region":"US",
-    "location":"lat:47.639557;long:-122.128159;re=1000m;",
-    "userIpAddress":"67.21.82.247",
-    "timestamp":"2024-02-20T15:20:48+08:00",
-    "author":"user",
-    "inputMethod":"Keyboard",
-    "text":"hi",
-    "messageType":"Chat",
-    "requestId":"b67ae6dd-2881-ff7b-56ad-480ad65b8cf1",
-    "messageId":"b67ae6dd-2881-ff7b-56ad-480ad65b8cf1"
+  "gptId": "copilot",
+  "isStartOfSession": true,
+  "requestId": "9edbc756-129a-68ef-bd9d-46fa106017e0",
+  "message": {
+    "locale": "en-US",
+    "market": "en-US",
+    "region": "FR",
+    "location": "lat:47.639557;long:-122.128159;re=1000m;",
+    "locationHints": [
+      {
+        "SourceType": 1,
+        "RegionType": 2,
+        "Center": {
+          "Latitude": 48.8827018737793,
+          "Longitude": 2.319700002670288
+        },
+        "Radius": 24902,
+        "Name": "Paris, Ile-De-France",
+        "Accuracy": 24902,
+        "FDConfidence": 0.8999999761581421,
+        "CountryName": "France",
+        "CountryConfidence": 9,
+        "Admin1Name": "Ile-De-France",
+        "PopulatedPlaceName": "Paris",
+        "PopulatedPlaceConfidence": 9,
+        "PostCodeName": "75017",
+        "UtcOffset": 1,
+        "Dma": 0
+      }
+    ],
+    "userIpAddress": "2001:bc8:377d:ff00:fc:c3d3:449:d00e",
+    "timestamp": "2024-03-10T12:40:47+08:00",
+    "author": "user",
+    "inputMethod": "Keyboard",
+    "text": "hi",
+    "messageType": "Chat",
+    "requestId": "9edbc756-129a-68ef-bd9d-46fa106017e0",
+    "messageId": "9edbc756-129a-68ef-bd9d-46fa106017e0"
   },
-  "tone":"Creative",
-  "spokenTextMode":"None",
-  "conversationId":"51D|BingProd|A21F4855AE22C5ED1C2D050C6979C69F2208FF5F1FB1188F59701F215DF7BBE7",
-  "participant":{
-    "id":"1055519805418731"
+  "tone": "Balanced",
+  "extraExtensionParameters": {
+    "gpt-creator-persona": {
+      "personaId": "copilot"
+    }
+  },
+  "spokenTextMode": "None",
+  "conversationId": "51D|BingProd|0D65EBC8DE1446941E7DF2927E9AB0DAF83C496341EF747B57EB36D942EEFFB3",
+  "participant": {
+    "id": "1055519805418731"
   }
 }

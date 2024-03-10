@@ -1,6 +1,6 @@
 {
-  "source":"cib",
-  "optionsSets":[
+  "source": "cib",
+  "optionsSets": [
     "nlu_direct_response_filter",
     "deepleo",
     "disable_emoji_spoken_text",
@@ -10,18 +10,15 @@
     "autosave",
     "iyxapbing",
     "iycapbing",
-    "enable_user_consent",
-    "fluxmemcst",
+    "galileo",
     "saharagenconv5",
-    "bicfluxv3",
-    "dclfluxv15",
     "gldcl1p",
-    "gndlogcf",
-    "gptvnoex",
-    "eredirecturl",
-    "nosearchall"
+    "gpt4tmncnp",
+    "fluxv15ph",
+    "uquopt",
+    "eredirecturl"
   ],
-  "allowedMessageTypes":[
+  "allowedMessageTypes": [
     "ActionRequest",
     "Chat",
     "ConfirmationCard",
@@ -37,66 +34,97 @@
     "SemanticSerp",
     "GenerateContentQuery",
     "SearchQuery",
-    "GeneratedCode"
+    "GeneratedCode",
+    "InternalTasksMessage"
   ],
-  "sliceIds":[
-    "sappbcbc",
-    "inlineadsv2ho-prod",
-    "fltltst2",
-    "bgstreamcf",
-    "galleryranker",
-    "zinwf",
-    "132dxccaches0",
-    "suppsm240hm",
-    "srchqryfix",
-    "suppsm240-t",
+  "sliceIds": [
+    "bgstream",
+    "supllmnfe",
+    "fltltst2c",
+    "stcheckcf",
+    "invldrqcf",
+    "v6voice",
+    "vnextvoice",
+    "romiccf",
+    "scmcbase",
     "cmcpupsalltf",
-    "proupsalltf",
-    "213memrev",
-    "0209bicv3",
-    "205dcl1bt15",
-    "927storev2s0",
-    "fpallsticy",
-    "sapsgrds0",
-    "1pgptwdes",
-    "newzigpt",
-    "0131wcpbkoss0",
-    "cacfrwebt3cf",
-    "sswebtop3cf"
+    "thdnsrchcf",
+    "220dcl1s0",
+    "0215wcrwips0",
+    "0130gpt4t",
+    "bingfccf",
+    "0221pluginshyb",
+    "0225unsticky1",
+    "0228scs",
+    "scprompt1",
+    "defquerycf",
+    "cacfastapis",
+    "defgrey",
+    "3022tpvs0"
   ],
-  "verbosity":"verbose",
-  "scenario":"SERP",
-  "plugins":[
-
+  "verbosity": "verbose",
+  "scenario": "SERP",
+  "plugins": [
+    {
+      "id": "c310c353-b9f0-4d76-ab0d-1dd5e979cf68",
+      "category": 1
+    }
   ],
-  "traceId":"65d452d3665e4b51bf2468889ea5317f",
-  "conversationHistoryOptionsSets":[
+  "traceId": "65ed39cc10414c198cf13f81afac45fc",
+  "conversationHistoryOptionsSets": [
     "autosave",
     "savemem",
     "uprofupd",
     "uprofgen"
   ],
-  "gptId":"copilot",
-  "isStartOfSession":true,
-  "requestId":"0116cf94-8cd2-b7e2-4eb2-0705dd7b9436",
-  "message":{
-    "locale":"en-US",
-    "market":"en-US",
-    "region":"US",
-    "location":"lat:47.639557;long:-122.128159;re=1000m;",
-    "userIpAddress":"67.21.82.247",
-    "timestamp":"2024-02-20T15:20:48+08:00",
-    "author":"user",
-    "inputMethod":"Keyboard",
-    "text":"你好",
-    "messageType":"Chat",
-    "requestId":"0116cf94-8cd2-b7e2-4eb2-0705dd7b9436",
-    "messageId":"0116cf94-8cd2-b7e2-4eb2-0705dd7b9436"
+  "gptId": "copilot",
+  "isStartOfSession": true,
+  "requestId": "e1423a5d-2f8a-2b98-dcd9-620219994b4d",
+  "message": {
+    "locale": "en-US",
+    "market": "en-US",
+    "region": "FR",
+    "location": "lat:47.639557;long:-122.128159;re=1000m;",
+    "locationHints": [
+      {
+        "SourceType": 1,
+        "RegionType": 2,
+        "Center": {
+          "Latitude": 48.8827018737793,
+          "Longitude": 2.319700002670288
+        },
+        "Radius": 24902,
+        "Name": "Paris, Ile-De-France",
+        "Accuracy": 24902,
+        "FDConfidence": 0.8999999761581421,
+        "CountryName": "France",
+        "CountryConfidence": 9,
+        "Admin1Name": "Ile-De-France",
+        "PopulatedPlaceName": "Paris",
+        "PopulatedPlaceConfidence": 9,
+        "PostCodeName": "75017",
+        "UtcOffset": 1,
+        "Dma": 0
+      }
+    ],
+    "userIpAddress": "2001:bc8:377d:ff00:fc:c3d3:449:d00e",
+    "timestamp": "2024-03-10T12:40:47+08:00",
+    "author": "user",
+    "inputMethod": "Keyboard",
+    "text": "hi",
+    "messageType": "Chat",
+    "requestId": "e1423a5d-2f8a-2b98-dcd9-620219994b4d",
+    "messageId": "e1423a5d-2f8a-2b98-dcd9-620219994b4d"
   },
-  "tone":"Balanced",
-  "spokenTextMode":"None",
-  "conversationId":"51D|BingProd|41780CB867426028726DA39642C1E8C0B3D1387BEC714A1126C313FD6C8066BD",
-  "participant":{
-    "id":"1055519805418731"
+  "tone": "Balanced",
+  "extraExtensionParameters": {
+    "gpt-creator-persona": {
+      "personaId": "copilot"
+    }
+  },
+  "spokenTextMode": "None",
+  "conversationId": "51D|BingProd|391D4E92BF0DF33F9D2C7CC198CBFDE13DD01D24F67A02545F8E4F2074C28791",
+  "participant": {
+    "id": "1055519805418731"
   }
 }
