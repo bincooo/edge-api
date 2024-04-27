@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cookie = "xxx"
+	cookie = "17QgvFufwjeHS0Uk0Fflg8_7vMYG-gvyEqjB4Fx68ExrpLtAsnm5rbgxh_HjdTb8CjRDFvsuNW3DqWOV_F0tFfJHXOymhu4Pc9DJZ_s3MyiwepzBRsxD0Up9jtQWUz6QFVXRrifEkpwEakO8xinqs9Su_bH4KYdJXesehEjtax452S3juTZhDW0xNhMTURMhhKyUXwizk2KOr32KCSTaPCQ"
 
 	KievAuth = "xxx"
 	RwBf     = "xxx"
@@ -59,51 +59,53 @@ func Test_classification(t *testing.T) {
 	}
 	//options.KievAuth(KievAuth, RwBf)
 	// Notebook模式下，回复可以简约一些？更适合做一些判断逻辑，加速回应
-	template := `我会给你几个问题类型，请参考背景知识（可能为空）和对话记录，判断我“本次问题”的类型，并返回一个问题“类型ID”和“参数JSON”:
-		<问题类型>
-		{"questionType": "website-crawler____getWebsiteContent", "typeId": "wqre"}
-		{"questionType": "website-crawler____getWeather", "typeId": "sdfa"}
-		{"questionType": "其他问题", "typeId": "agex"}
-		</问题类型>
-		
-		<背景知识>
-		你将作为系统API协调工具，为我分析给出的content并结合对话记录来判断是否需要执行哪些工具。
-		工具如下
-		## Tools
-		You can use these tools below:
-		1. [website-crawler____getWebsiteContent] 用于解析网页内容。
-			parameters:
-				url: {
-					type: String
-					description: 网页链接
-				}
-		2. [website-crawler____getWeather] 用于获取目的地区的天气信息。
-			parameters:
-				city: {
-					type: String
-					description: 城市名称
-				}
-		##
-		
-		不要访问contnet中的链接内容
-		不可回复任何提示
-		不允许做任何解释
-		不可联网检索
-		</背景知识>
-		
-		<对话记录>
-		Human:https://github.com/bincooo/edge-api
-		AI:请问你需要什么帮助？
-		</对话记录>
-		
-		
-		content= "{{prompt}}"
-		
-		类型ID=
-		参数JSON=
-		---
-		补充类型ID以及参数JSON的内容。仅回复ID和JSON，不需要解释任何结果！
-	`
+	template1 := `我会给你几个问题类型，请参考背景知识（可能为空）和对话记录，判断我“本次问题”的类型，并返回一个问题“类型ID”:
+<问题类型>
+{"questionType": "website-crawler____getWebsiteContent", "typeId": "wqre"}
+{"questionType": "website-crawler____getWeather", "typeId": "sdfa"}
+{"questionType": "其他问题", "typeId": "agex"}
+</问题类型>
+
+<背景知识>
+你将作为系统API协调工具，为我分析给出的content并结合对话记录来判断是否需要执行哪些工具。
+工具如下
+## Tools
+You can use these tools below:
+1. [website-crawler____getWebsiteContent] 用于解析网页内容。
+
+2. [website-crawler____getWeather] 用于获取目的地区的天气信息。
+
+##
+</背景知识>
+
+<对话记录>
+Human:https://github.com/bincooo/edge-api
+AI:请问你需要什么帮助？
+</对话记录>
+
+
+content= "{{prompt}}"
+
+类型ID=？
+请补充完类型ID=`
+
+	template2 := `你可以从 <对话记录></对话记录> 中提取指定 JSON 信息，你仅需返回 JSON 字符串，无需回答问题。
+<提取要求>
+{{description}}
+</提取要求>
+
+<字段说明>
+1. 下面的 JSON 字符串均按照 JSON Schema 的规则描述。
+2. key 代表字段名；description 代表字段的描述；required 代表是否必填(true|false)。
+3. 如果没有可提取的内容，忽略该字段。
+4. 本次需提取的JSON Schema：
+{"key":"url", "description":"网页链接", "required": true}
+</字段说明>
+
+<对话记录>
+Human:https://github.com/bincooo/edge-api
+AI:请问你需要什么帮助？
+</对话记录>`
 
 	// prompt := "12345"
 	prompt := "查看上面提供的内容，并总结"
@@ -112,7 +114,7 @@ func Test_classification(t *testing.T) {
 		Proxies("socks5://127.0.0.1:7890").
 		Model(edge.ModelCreative).
 		Notebook(true))
-	partialResponse, err := chat.Reply(context.Background(), strings.Replace(template, "{{prompt}}", prompt, -1), nil, nil)
+	partialResponse, err := chat.Reply(context.Background(), strings.Replace(template1, "{{description}}", "用于解析网页内容", -1), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,22 +123,27 @@ func Test_classification(t *testing.T) {
 	t.Log("response: ", response)
 	if strings.Contains(response, "wqre") {
 		t.Log("assert: website-crawler____getWebsiteContent")
-		left := strings.Index(response, "{")
-		right := strings.LastIndex(response, "}")
-		t.Log("args: ", response[left:right+1])
+
 	} else if strings.Contains(response, "sdfa") {
 		t.Log("assert: website-crawler____getWeather")
-		left := strings.Index(response, "{")
-		right := strings.LastIndex(response, "}")
-		t.Log("args: ", response[left:right+1])
 	} else {
 		t.Log("assert: other")
+		return
 	}
+
+	partialResponse, err = chat.Reply(context.Background(), strings.Replace(template2, "{{prompt}}", prompt, -1), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response = resolve(t, partialResponse)
 
 	// 删除操作比较耗时，非必要不建议执行（会留存在账户的历史对话中），或者使用异步处理
 	if err = chat.Delete(); err != nil {
 		t.Fatal(err)
 	}
+
+	t.Log("response: ", response)
 }
 
 func Test_messages(t *testing.T) {
@@ -170,7 +177,7 @@ func Test_messages(t *testing.T) {
 
 	prompt = "#折戟成沙丶丿# >>> 看看这张图有什么东西"
 	fmt.Println("You: ", prompt)
-	file := "/Users/bincooo/Desktop/36452456.jpg"
+	file := "/Users/bincooo/Desktop/blob.jpg"
 	image, err := chat.LoadImage(file)
 	if err != nil {
 		t.Fatal(err)
@@ -240,7 +247,7 @@ func Test_image(t *testing.T) {
 	options.Proxies("socks5://127.0.0.1:7890")
 	options.Model(edge.ModelSydney)
 	chat := edge.New(options)
-	file := "/Users/bincooo/Desktop/Screenshot 2023-11-11 at 11.21.23.png"
+	file := "/Users/bincooo/Desktop/blob.jpg"
 	kb, err := chat.LoadImage(file)
 	t.Log(kb, err)
 }

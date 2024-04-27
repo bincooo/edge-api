@@ -1,19 +1,29 @@
 {
   "source": "cib",
   "optionsSets": [
-    "nlu_direct_response_filter",
     "deepleo",
     "disable_emoji_spoken_text",
-    "responsible_ai_policy_235",
     "enablemm",
     "dv3sugg",
     "iyxapbing",
     "iycapbing",
     "h3precise",
-    "uquopt",
+    "msgsign",
+    "enflst",
+    "enpcktrk",
+    "rcaltimeans",
+    "defrai_v3",
+    "imgsanitize",
+    "dv3suggv4",
+    "gasupcard",
     "eredirecturl",
+    "ldsummary",
+    "ldqa",
+    "sdretrieval",
+    "enable_user_consent",
+    "fluxmemcst",
     "clgalileo",
-    "gencontentv3",
+    "codeintfilev2",
     "prjupy"
   ],
   "allowedMessageTypes": [
@@ -28,44 +38,50 @@
     "Progress",
     "RenderCardRequest",
     "RenderContentRequest",
-    "AdsQuery",
     "SemanticSerp",
     "GenerateContentQuery",
-    "SearchQuery",
     "GeneratedCode",
-    "InternalTasksMessage"
+    "Disclaimer"
   ],
   "sliceIds": [
-    "bgstream",
-    "supllmnfe",
-    "fltltst2c",
-    "stcheckcf",
-    "invldrqcf",
-    "v6voice",
-    "vnextvoice",
-    "romiccf",
-    "scmcbase",
-    "cmcpupsalltf",
-    "thdnsrchcf",
-    "220dcl1s0",
-    "0215wcrwips0",
-    "0130gpt4t",
-    "bingfccf",
-    "0221pluginshyb",
-    "0225unsticky1",
-    "0228scs",
-    "scprompt1",
-    "defquerycf",
-    "cacfastapis",
-    "defgrey",
-    "3022tpvs0"
+    "fast2cf",
+    "ntbkcf3",
+    "visperfcf",
+    "qapsat40",
+    "ctenin",
+    "crtrcrtv",
+    "abv2specjs",
+    "rwt2",
+    "ctrlfiltconf",
+    "translsafa",
+    "424bicbceproc",
+    "124multi2ts0",
+    "0408defrai_v3",
+    "dismsg",
+    "0411trimbanv3",
+    "0215wcrwip",
+    "0411dylbp",
+    "fpallsticy",
+    "0423suggv4",
+    "scprompt2",
+    "0306flowvaca",
+    "228pyfilev3",
+    "ecipc",
+    "418paydetecs0",
+    "0420bicmgs0",
+    "413bicsup",
+    "3daytonecf",
+    "cacshortcac5",
+    "sstopcf",
+    "0319incipcls0",
+    "schurmscf"
   ],
   "verbosity": "verbose",
   "scenario": "SERP",
   "plugins": [
 
   ],
-  "traceId": "65ed39cc10414c198cf13f81afac45fc",
+  "traceId": "662c72adfc494c8e82ad58def0f3e0af",
   "conversationHistoryOptionsSets": [
     "autosave",
     "savemem",
@@ -73,53 +89,56 @@
     "uprofgen"
   ],
   "gptId": "copilot",
-  "isStartOfSession": true,
-  "requestId": "9edbc756-129a-68ef-bd9d-46fa106017e0",
+  "isStartOfSession": false,
+  "requestId": "a0af2b26-ea91-9a41-7128-e585c513b358",
   "message": {
     "locale": "en-US",
     "market": "en-US",
-    "region": "FR",
+    "region": "US",
     "location": "lat:47.639557;long:-122.128159;re=1000m;",
     "locationHints": [
       {
         "SourceType": 1,
         "RegionType": 2,
         "Center": {
-          "Latitude": 48.8827018737793,
-          "Longitude": 2.319700002670288
+          "Latitude": 34.05189895629883,
+          "Longitude": -118.26219940185547
         },
         "Radius": 24902,
-        "Name": "Paris, Ile-De-France",
+        "Name": "Los Angeles, California",
         "Accuracy": 24902,
-        "FDConfidence": 0.8999999761581421,
-        "CountryName": "France",
-        "CountryConfidence": 9,
-        "Admin1Name": "Ile-De-France",
-        "PopulatedPlaceName": "Paris",
-        "PopulatedPlaceConfidence": 9,
-        "PostCodeName": "75017",
-        "UtcOffset": 1,
-        "Dma": 0
+        "FDConfidence": 0.5,
+        "CountryName": "United States",
+        "CountryConfidence": 8,
+        "Admin1Name": "California",
+        "PopulatedPlaceName": "Los Angeles",
+        "PopulatedPlaceConfidence": 5,
+        "PostCodeName": "90017",
+        "UtcOffset": -8,
+        "Dma": 803
       }
     ],
-    "userIpAddress": "2001:bc8:377d:ff00:fc:c3d3:449:d00e",
-    "timestamp": "2024-03-10T12:40:47+08:00",
+    "userIpAddress": "67.21.82.247",
+    "timestamp": "2024-04-27T11:36:17+08:00",
+    "adaptiveCards": [
+
+    ],
     "author": "user",
     "inputMethod": "Keyboard",
     "text": "hi",
     "messageType": "Chat",
-    "requestId": "9edbc756-129a-68ef-bd9d-46fa106017e0",
-    "messageId": "9edbc756-129a-68ef-bd9d-46fa106017e0"
+    "requestId": "a0af2b26-ea91-9a41-7128-e585c513b358",
+    "messageId": "a0af2b26-ea91-9a41-7128-e585c513b358"
   },
-  "tone": "Balanced",
+  "tone": "Creative",
   "extraExtensionParameters": {
     "gpt-creator-persona": {
       "personaId": "copilot"
     }
   },
   "spokenTextMode": "None",
-  "conversationId": "51D|BingProd|0D65EBC8DE1446941E7DF2927E9AB0DAF83C496341EF747B57EB36D942EEFFB3",
+  "conversationId": "51D|BingProd|19CEF61034B7B72A82A5452207D786B373A0D385468266491C83965A29D9841F",
   "participant": {
-    "id": "1055519805418731"
+    "id": "914802122017678"
   }
 }

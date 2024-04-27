@@ -538,8 +538,8 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 	message["requestId"] = messageId
 	message["messageId"] = messageId
 	if image != nil {
-		message["imageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.ProcessedBlobId
-		message["originalImageUrl"] = "https://copilot.microsoft.com/images/blob?bcid=" + image.BlobId
+		message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + image.ProcessedBlobId
+		message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + image.BlobId
 	}
 	message["text"] = prompt
 

@@ -137,5 +137,8 @@ func (c *Chat) uploadImageBase64(base64Image string) (kb *KBlob, err error) {
 	if err = json.Unmarshal(marshal, &kb); err != nil {
 		return kb, &ChatError{"image", err}
 	}
+	if kb.ProcessedBlobId == "" {
+		kb.ProcessedBlobId = kb.BlobId
+	}
 	return kb, nil
 }
