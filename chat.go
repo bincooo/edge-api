@@ -180,6 +180,26 @@ func (c *Chat) GetSession() Conversation {
 	}
 }
 
+func (c *Chat) IsLogin() bool {
+	conversationId := c.GetSession().ConversationId
+	if conversationId == "" {
+		conversation, err := c.newConversation()
+		if err != nil {
+			return false
+		}
+		c.session = conversation
+		conversationId = conversation.ConversationId
+	}
+
+	slices := strings.Split(conversationId, "|")
+	if len(slices) > 1 {
+		str := slices[1]
+		return str == "BingProd"
+	}
+
+	return false
+}
+
 // 对话并回复
 //
 // ctx Context 控制器，promp string 当前对话，image KBlob 图片信息，previousMessages[] ChatMessage 历史记录
@@ -199,14 +219,8 @@ func (c *Chat) GetSession() Conversation {
 func (c *Chat) Reply(ctx context.Context, text string, previousMessages []ChatMessage) (chan ChatResponse, error) {
 	c.mu.Lock()
 	if c.session == nil || c.session.ConversationId == "" || c.model == ModelSydney {
-		count := 1
-	label:
 		conv, err := c.newConversation()
 		if err != nil {
-			if count < c.retry {
-				count++
-				goto label
-			}
 			c.mu.Unlock()
 			return nil, &ChatError{"conversation", err}
 		}

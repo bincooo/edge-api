@@ -104,6 +104,8 @@ func TestNsfwMessages(t *testing.T) {
 		Model(edge.ModelSydney).
 		Temperature(1.0).
 		TopicToE(true))
+	flag := chat.IsLogin()
+	t.Logf("cookie登陆状态: %v", flag)
 
 	bio, _ := os.ReadFile("./histories.txt")
 	pMessages = append(pMessages, edge.BuildPageMessage(string(bio)))
