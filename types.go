@@ -128,6 +128,15 @@ func BuildMessage(messageType, text string) ChatMessage {
 	}
 }
 
+func BuildSwitchMessage(role, text string) ChatMessage {
+	switch role {
+	case "bot":
+		return BuildBotMessage(text)
+	default:
+		return BuildUserMessage(text)
+	}
+}
+
 func BuildUserMessage(text string) ChatMessage {
 	return ChatMessage{
 		"text":        text,
