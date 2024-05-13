@@ -12,7 +12,9 @@ type Options struct {
 	rwBf           string            //
 	topicToE       bool              // topic警告是否作为错误返回
 	notebook       bool              // 文档模式
-	plugins        []string          // 插件
+	compose        bool              // 混合模式 ？ 效用待测
+	composeObj     ComposeObj
+	plugins        []string // 插件
 
 	model   string // 对话模式
 	retry   int    // 重试次数
@@ -21,6 +23,12 @@ type Options struct {
 	muId    string // 设备Id？
 	wss     string // 对话链接
 	create  string // 创建会话链接
+}
+
+type ComposeObj struct {
+	Fmt    string
+	Length string
+	Tone   string
 }
 
 type Chat struct {
@@ -103,5 +111,49 @@ type ChatError struct {
 }
 
 func (c ChatError) Error() string {
-	return fmt.Sprintf("[EDGE-API::%s] %v", c.Action, c.Message)
+	return fmt.Sprintf("[edge-api::%s] %v", c.Action, c.Message)
+}
+
+func BuildMessage(messageType, text string) ChatMessage {
+	switch messageType {
+	case "Internal", "CurrentWebpageContextRequest":
+	default:
+		messageType = "Internal"
+	}
+
+	return ChatMessage{
+		"text":        text,
+		"author":      "user",
+		"messageType": messageType,
+	}
+}
+
+func BuildUserMessage(text string) ChatMessage {
+	return ChatMessage{
+		"text":        text,
+		"author":      "user",
+		"messageType": "Internal",
+	}
+}
+
+func BuildBotMessage(text string) ChatMessage {
+	return ChatMessage{
+		"text":        text,
+		"author":      "bot",
+		"messageType": "Internal",
+		"invocation":  "hint(Copilot_language=\"中文\")",
+	}
+}
+
+func BuildPageMessage(text string) ChatMessage {
+	return ChatMessage{
+		"author":      "user",
+		"description": text,
+		"contextType": "WebPage",
+		"messageType": "Context",
+		"sourceName":  "histories.txt",
+		"sourceUrl":   "file:///histories.txt",
+		"privacy":     "Internal",
+		"locale":      "",
+	}
 }

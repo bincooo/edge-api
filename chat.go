@@ -29,9 +29,28 @@ type wsConn struct {
 	IsClose bool
 }
 
-func (ws *wsConn) Close() {
-	ws.IsClose = true
-	_ = ws.Conn.Close()
+func (conn *wsConn) Close() {
+	conn.IsClose = true
+	_ = conn.Conn.Close()
+}
+
+func (conn *wsConn) ping() {
+	const s5 = 5 * time.Second
+	t := time.Now().Add(s5)
+	for {
+		if conn.IsClose {
+			return
+		}
+		// 5秒执行一次心跳
+		if time.Now().After(t) {
+			t = time.Now().Add(s5)
+			err := conn.WriteMessage(websocket.TextMessage, ping)
+			if err != nil {
+				return
+			}
+		}
+		time.Sleep(time.Second)
+	}
 }
 
 func NewDefaultOptions(cookie, middle string) (*Options, error) {
@@ -113,6 +132,17 @@ func (opts *Options) KievAuth(kievRPSSecAuth, rwBf string) *Options {
 	return opts
 }
 
+// 写作混合模式
+func (opts *Options) Compose(flag bool, obj struct {
+	Fmt    string
+	Length string
+	Tone   string
+}) *Options {
+	opts.compose = flag
+	opts.composeObj = obj
+	return opts
+}
+
 // 创建会话实例
 func New(opts *Options) Chat {
 	if opts == nil {
@@ -152,7 +182,7 @@ func (c *Chat) GetSession() Conversation {
 
 // 对话并回复
 //
-// ctx Context 控制器，promp string 当前对话，image KBlob 图片信息，previousMessages []map[string]string 历史记录
+// ctx Context 控制器，promp string 当前对话，image KBlob 图片信息，previousMessages[] ChatMessage 历史记录
 //
 // previousMessages:
 //
@@ -166,7 +196,7 @@ func (c *Chat) GetSession() Conversation {
 //			"text": "Hello, this is Bing. I am a chat mode ..."
 //		}
 //	]
-func (c *Chat) Reply(ctx context.Context, prompt string, image *KBlob, previousMessages []ChatMessage) (chan ChatResponse, error) {
+func (c *Chat) Reply(ctx context.Context, text string, previousMessages []ChatMessage) (chan ChatResponse, error) {
 	c.mu.Lock()
 	if c.session == nil || c.session.ConversationId == "" || c.model == ModelSydney {
 		count := 1
@@ -183,14 +213,16 @@ func (c *Chat) Reply(ctx context.Context, prompt string, image *KBlob, previousM
 		c.session = conv
 	}
 
-	h, err := c.newHub(c.model, *c.session, prompt, image, previousMessages)
+	h, err := c.newHub(c.model, *c.session, text, previousMessages)
 	if err != nil {
 		c.mu.Unlock()
 		return nil, &ChatError{"data", err}
 	}
 
 	hub := map[string]any{
-		"arguments":    []any{h},
+		"arguments": []any{
+			h,
+		},
 		"invocationId": strconv.Itoa(c.session.invocationId),
 		"target":       "chat",
 		"type":         4,
@@ -216,24 +248,7 @@ func (c *Chat) Reply(ctx context.Context, prompt string, image *KBlob, previousM
 
 	message := make(chan ChatResponse)
 	go c.resolve(ctx, conn, message)
-	go func() {
-		const s5 = 5 * time.Second
-		t := time.Now().Add(s5)
-		for {
-			if conn.IsClose {
-				return
-			}
-			// 5秒执行一次心跳
-			if time.Now().After(t) {
-				t = time.Now().Add(s5)
-				err = conn.WriteMessage(websocket.TextMessage, ping)
-				if err != nil {
-					return
-				}
-			}
-			time.Sleep(time.Second)
-		}
-	}()
+	go conn.ping()
 	return message, nil
 }
 
@@ -245,7 +260,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 
 	normal := false
 
-	h := func() bool {
+	eventHandler := func() bool {
 		// 轮询回复消息
 		_, marshal, err := conn.ReadMessage()
 		if err != nil {
@@ -322,12 +337,12 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 		}
 
 		// 处理消息
-		args0 := response.Args[0]
-		if args0.Messages == nil || len(*args0.Messages) == 0 {
+		arg0 := response.Args[0]
+		if arg0.Messages == nil || len(*arg0.Messages) == 0 {
 			return false
 		}
 
-		m := (*args0.Messages)[0]
+		m := (*arg0.Messages)[0]
 		if m.MessageType != "" && strings.Contains("InternalSearchQuery,InternalSearchResult,InternalLoaderMessage", m.MessageType) {
 			return false
 		}
@@ -361,7 +376,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 			}
 			return
 		default:
-			if h() {
+			if eventHandler() {
 				return
 			}
 		}
@@ -463,7 +478,7 @@ func (c *Chat) newConn() (*wsConn, error) {
 }
 
 // 构建对接参数
-func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBlob, previousMessages []ChatMessage) (map[string]any, error) {
+func (c *Chat) newHub(model string, conv Conversation, text string, previousMessages []ChatMessage) (map[string]any, error) {
 	var hub map[string]any
 	if c.notebook {
 		if err := json.Unmarshal(nbkHub, &hub); err != nil {
@@ -486,24 +501,35 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 		} else {
 			tone = ModelPrecise
 		}
-		messageTypes := hub["allowedMessageTypes"].([]any)
-		h := func(str string) func(any) bool {
-			return func(item any) bool {
+		h := func(str string) func(interface{}) bool {
+			return func(item interface{}) bool {
 				return item == str
 			}
 		}
+		messageTypes := hub["allowedMessageTypes"].([]interface{})
 		messageTypes = del(messageTypes, h("SearchQuery"))
 		messageTypes = del(messageTypes, h("RenderCardRequest"))
 		messageTypes = del(messageTypes, h("InternalSearchQuery"))
 		messageTypes = del(messageTypes, h("InternalSearchResult"))
 		hub["allowedMessageTypes"] = messageTypes
 		hub["tone"] = tone
-
-		// if !c.notebook {
-		// 	hub["sliceIds"] = sliceIds
-		// }
 	} else {
 		hub["tone"] = model
+	}
+
+	if c.compose {
+		optionsSets := hub["optionsSets"].([]interface{})
+		optionsSets = append(optionsSets, "edgecompose")
+		hub["optionsSets"] = optionsSets
+
+		extraExtensionParameters := hub["extraExtensionParameters"].(map[string]interface{})
+		extraExtensionParameters["edge_compose_generate"] = map[string]string{
+			"Format": c.composeObj.Fmt,
+			"Length": c.composeObj.Length,
+			"Tone":   c.composeObj.Tone,
+			"Action": "generate",
+		}
+		hub["extraExtensionParameters"] = extraExtensionParameters
 	}
 
 	plugins, err := c.LoadPlugins(c.plugins...)
@@ -537,11 +563,7 @@ func (c *Chat) newHub(model string, conv Conversation, prompt string, image *KBl
 	message["timestamp"] = time.Now().Format("2006-01-02T15:04:05+08:00")
 	message["requestId"] = messageId
 	message["messageId"] = messageId
-	if image != nil {
-		message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + image.ProcessedBlobId
-		message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + image.BlobId
-	}
-	message["text"] = prompt
+	message["text"] = text
 
 	if conv.invocationId == 0 || model == ModelSydney {
 		// 处理历史消息
