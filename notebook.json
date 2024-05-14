@@ -2,7 +2,6 @@
   "source": "cib",
   "optionsSets": [
     "deepleo",
-    "disable_emoji_spoken_text",
     "enablemm",
     "dv3sugg",
     "iyxapbing",
@@ -14,8 +13,7 @@
     "localreducehho",
     "eredirecturl",
     "fluxmemcst",
-    "clgalileo",
-    "prjupy"
+    "clgalileo"
   ],
   "allowedMessageTypes": [
     "Chat",

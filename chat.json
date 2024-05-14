@@ -2,7 +2,6 @@
   "source": "cib",
   "optionsSets": [
     "deepleo",
-    "disable_emoji_spoken_text",
     "enablemm",
     "dv3sugg",
     "iyxapbing",
@@ -21,6 +20,7 @@
     "enstmdfcf",
     "gndlogcf",
     "localreducehho",
+    "eredirecturl",
     "fluxmemcst"
   ],
   "allowedMessageTypes": [
@@ -113,12 +113,6 @@
   "extraExtensionParameters": {
     "gpt-creator-persona": {
       "personaId": "copilot"
-    },
-    "edge_compose_generate": {
-      "Action": "generate",
-      "Format": "paragraph",
-      "Length": "medium",
-      "Tone": "enthusiastic"
     }
   },
   "spokenTextMode": "None",

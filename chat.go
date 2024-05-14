@@ -133,11 +133,7 @@ func (opts *Options) KievAuth(kievRPSSecAuth, rwBf string) *Options {
 }
 
 // 写作混合模式
-func (opts *Options) Compose(flag bool, obj struct {
-	Fmt    string
-	Length string
-	Tone   string
-}) *Options {
+func (opts *Options) Compose(flag bool, obj ComposeObj) *Options {
 	opts.compose = flag
 	opts.composeObj = obj
 	return opts
@@ -537,6 +533,12 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 		hub["optionsSets"] = optionsSets
 
 		extraExtensionParameters := hub["extraExtensionParameters"].(map[string]interface{})
+		//    "edge_compose_generate": {
+		//      "Action": "generate",
+		//      "Format": "paragraph",
+		//      "Length": "medium",
+		//      "Tone": "enthusiastic"
+		//    }
 		extraExtensionParameters["edge_compose_generate"] = map[string]string{
 			"Format": c.composeObj.Fmt,
 			"Length": c.composeObj.Length,

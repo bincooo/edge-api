@@ -118,7 +118,7 @@ func BuildMessage(messageType, text string) ChatMessage {
 	switch messageType {
 	case "Internal", "CurrentWebpageContextRequest":
 	default:
-		messageType = "Internal"
+		messageType = ""
 	}
 
 	return ChatMessage{
@@ -139,18 +139,16 @@ func BuildSwitchMessage(role, text string) ChatMessage {
 
 func BuildUserMessage(text string) ChatMessage {
 	return ChatMessage{
-		"text":        text,
-		"author":      "user",
-		"messageType": "Internal",
+		"text":   text,
+		"author": "user",
 	}
 }
 
 func BuildBotMessage(text string) ChatMessage {
 	return ChatMessage{
-		"text":        text,
-		"author":      "bot",
-		"messageType": "Internal",
-		"invocation":  "hint(Copilot_language=\"中文\")",
+		"text":       text,
+		"author":     "bot",
+		"invocation": "hint(Copilot_language=\"中文\")",
 	}
 }
 
