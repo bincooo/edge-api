@@ -32,7 +32,7 @@ var chatHub []byte
 //go:embed notebook.json
 var nbkHub []byte
 
-var Version = "1.1732.0"
+var Version = "1.1742.1"
 
 var (
 	schema = []byte{123, 34, 112, 114, 111, 116, 111, 99, 111, 108, 34, 58, 34, 106, 115, 111, 110, 34, 44, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 49, 125, 30}
