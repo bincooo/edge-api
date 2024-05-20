@@ -145,6 +145,11 @@ func (opts *Options) Compose(flag bool, obj ComposeObj) *Options {
 	return opts
 }
 
+func (opts *Options) JoinOptionSets() *Options {
+	opts.optionSets = true
+	return opts
+}
+
 // 创建会话实例
 func New(opts *Options) Chat {
 	if opts == nil {
@@ -534,7 +539,9 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 	}
 
 	optionsSets := hub["optionsSets"].([]interface{})
-	optionsSets = append(optionsSets, optionSets...)
+	if c.optionSets {
+		optionsSets = append(optionsSets, optionSets...)
+	}
 
 	if c.compose {
 		optionsSets = append(optionsSets, "edgecompose")
