@@ -2,7 +2,9 @@ package edge
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
+	"time"
 )
 
 type Options struct {
@@ -121,11 +123,16 @@ func BuildMessage(messageType, text string) ChatMessage {
 		messageType = ""
 	}
 
-	return ChatMessage{
-		"text":        text,
-		"author":      "user",
-		"messageType": messageType,
+	message := ChatMessage{
+		"text":   text,
+		"author": "user",
 	}
+
+	if messageType != "" {
+		message["messageType"] = messageType
+	}
+
+	return message
 }
 
 func BuildSwitchMessage(role, text string) ChatMessage {
@@ -159,8 +166,18 @@ func BuildPageMessage(text string) ChatMessage {
 		"contextType": "WebPage",
 		"messageType": "Context",
 		"sourceName":  "histories.txt",
-		"sourceUrl":   "file:///histories.txt",
-		"privacy":     "Internal",
+		"sourceUrl":   "file:///Users/" + randStr(5) + "/histories.txt",
+		"privacy":     "NoSecondaryUse",
 		"locale":      "",
 	}
+}
+
+func randStr(n int) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	bytes := make([]rune, n)
+	for i := range bytes {
+		bytes[i] = runes[r.Intn(len(runes))]
+	}
+	return string(bytes)
 }

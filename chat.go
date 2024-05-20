@@ -18,9 +18,15 @@ import (
 	"time"
 )
 
-var H = map[string]string{
-	"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0",
-}
+var (
+	H = map[string]string{
+		"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0",
+	}
+
+	optionSets = []interface{}{
+		"clgalileonsr",
+	}
+)
 
 type kv = map[string]string
 
@@ -527,11 +533,11 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 		hub["tone"] = model
 	}
 
-	if c.compose {
-		optionsSets := hub["optionsSets"].([]interface{})
-		optionsSets = append(optionsSets, "edgecompose")
-		hub["optionsSets"] = optionsSets
+	optionsSets := hub["optionsSets"].([]interface{})
+	optionsSets = append(optionsSets, optionSets...)
 
+	if c.compose {
+		optionsSets = append(optionsSets, "edgecompose")
 		extraExtensionParameters := hub["extraExtensionParameters"].(map[string]interface{})
 		//    "edge_compose_generate": {
 		//      "Action": "generate",
@@ -548,6 +554,7 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 		hub["extraExtensionParameters"] = extraExtensionParameters
 	}
 
+	hub["optionsSets"] = optionsSets
 	plugins, err := c.LoadPlugins(c.plugins...)
 	if err != nil {
 		return nil, err
