@@ -342,6 +342,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 				c.session.invocationId++
 			}
 			message <- result
+			_ = conn.WriteMessage(websocket.TextMessage, append(end, delimiter))
 			return true
 		}
 
@@ -350,6 +351,7 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 			conn.IsClose = true
 			result.Error = &ChatError{"resolve", errors.New(response.Error)}
 			message <- result
+			_ = conn.WriteMessage(websocket.TextMessage, append(end, delimiter))
 			return true
 		}
 
@@ -372,10 +374,12 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 			if !normal && c.topicToE {
 				result.Error = &ChatError{"resolve", errors.New(m.Text)}
 				message <- result
+				_ = conn.WriteMessage(websocket.TextMessage, append(end, delimiter))
 				return true
 			}
 
 			if normal {
+				_ = conn.WriteMessage(websocket.TextMessage, append(end, delimiter))
 				return true
 			}
 		}

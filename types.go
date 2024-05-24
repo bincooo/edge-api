@@ -2,6 +2,7 @@ package edge
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"math/rand"
 	"sync"
 	"time"
@@ -95,7 +96,7 @@ type partialResponse struct {
 	} `json:"item"`
 }
 
-type ChatMessage = map[string]string
+type ChatMessage = map[string]interface{}
 
 type ChatResponse struct {
 	Text    string
@@ -147,16 +148,27 @@ func BuildSwitchMessage(role, text string) ChatMessage {
 
 func BuildUserMessage(text string) ChatMessage {
 	return ChatMessage{
-		"text":   text,
-		"author": "user",
+		"text":         text,
+		"author":       "user",
+		"messageId":    "local-gen-" + uuid.NewString(),
+		"requestId":    uuid.NewString(),
+		"responseType": 6,
+		"isFromCache":  true,
+		"genStream":    true,
 	}
 }
 
 func BuildBotMessage(text string) ChatMessage {
 	return ChatMessage{
-		"text":       text,
-		"author":     "bot",
-		"invocation": "hint(Copilot_language=\"中文\")",
+		"text":          text,
+		"author":        "bot",
+		"invocation":    "hint(Copilot_language=\"中文\")",
+		"messageId":     uuid.NewString(),
+		"offense":       "None",
+		"contentOrigin": "CachedEntry",
+		"responseType":  6,
+		"isFromCache":   true,
+		"genStream":     true,
 	}
 }
 
