@@ -26,12 +26,49 @@ const (
 )
 
 func (c *Chat) LoadImage(file string) (*KBlob, error) {
-	data, err := os.ReadFile(file)
-	if os.IsNotExist(err) {
-		return nil, &ChatError{"image", err}
+	var (
+		dataBytes []byte
+		err       error
+	)
+
+	// base64
+	if strings.HasPrefix(file, "data:image/") {
+		pos := strings.Index(file, ";")
+		if pos == -1 {
+			return nil, &ChatError{"image", errors.New("invalid base64 url")}
+		}
+
+		file = file[pos+1:]
+		if !strings.HasPrefix(file, "base64,") {
+			return nil, &ChatError{"image", errors.New("invalid base64 url")}
+		}
+
+		dataBytes, err = base64.StdEncoding.DecodeString(file[7:])
+		if err != nil {
+			return nil, &ChatError{"image", err}
+		}
+
+	} else if strings.HasPrefix(file, "http") {
+		// url
+		response, e := http.Get(file)
+		if e != nil {
+			return nil, &ChatError{"image", e}
+		}
+
+		dataBytes, err = io.ReadAll(response.Body)
+		if err != nil {
+			return nil, &ChatError{"image", err}
+		}
+
+	} else {
+		// local file
+		dataBytes, err = os.ReadFile(file)
+		if os.IsNotExist(err) {
+			return nil, &ChatError{"image", err}
+		}
 	}
 
-	i, _, err := image.Decode(bytes.NewReader(data))
+	i, _, err := image.Decode(bytes.NewReader(dataBytes))
 	if err != nil {
 		return nil, &ChatError{"image", err}
 	}
@@ -53,13 +90,13 @@ func (c *Chat) LoadImage(file string) (*KBlob, error) {
 		return nil, &ChatError{"image", err}
 	}
 
-	data = buf.Bytes()
-	base64Image := base64.StdEncoding.EncodeToString(data)
-	return c.uploadImageBase64(base64Image)
+	dataBytes = buf.Bytes()
+	base64Image := base64.StdEncoding.EncodeToString(dataBytes)
+	return c.uploadBase64(base64Image)
 }
 
 // 上传文件。 middle: 服务器地址， proxies: 本地代理， base64Image: 图片base64编码
-func (c *Chat) uploadImageBase64(base64Image string) (kb *KBlob, err error) {
+func (c *Chat) uploadBase64(base64Image string) (kb *KBlob, err error) {
 	body := new(bytes.Buffer)
 
 	if c.session == nil {
