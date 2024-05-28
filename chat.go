@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/RomiChan/websocket"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/proxy"
 	"io"
 	"net"
@@ -302,6 +303,9 @@ func (c *Chat) resolve(ctx context.Context, conn *wsConn, message chan ChatRespo
 
 		var response partialResponse
 		slice := bytes.Split(marshal, []byte{delimiter})
+		logrus.Tracef("--------- ORIGINAL MESSAGE ---------")
+		logrus.Tracef("%s", slice[0])
+
 		err = json.Unmarshal(slice[0], &response)
 		if err != nil {
 			message <- ChatResponse{
