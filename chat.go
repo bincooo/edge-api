@@ -738,7 +738,9 @@ func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
 		if value, ok := result["Value"].([]interface{}); ok {
 			for _, item := range value {
 				object := item.(map[string]interface{})
-				if contains(names, object["Name"].(string)) {
+				if space, o := object["LegalInfoUrl"].(string); o && containFor(names, func(value string) bool {
+					return strings.Contains(space, value)
+				}) {
 					plugins = append(plugins, object["Id"].(string))
 				}
 			}

@@ -16,12 +16,14 @@ const (
 	ModelPrecise  = "Precise"
 	ModelSydney   = "Sydney"
 
-	PluginShop      = "Shop"
-	PluginInstacart = "Instacart"
-	PluginOpenTable = "OpenTable"
-	PluginKlarna    = "Klarna"
-	PluginSearch    = "Search"
-	PluginKayak     = "Kayak"
+	PluginInstacart = "www.instacart.com"
+	PluginKlarna    = "www.klarna.com"
+	PluginKayak     = "www.kayak.com"
+	PluginShop      = "shop.app"
+	PluginOpenTable = "www.opentable.com"
+	PluginSearch    = "www.bing.com"
+	PluginPhone     = "aka.ms"
+	PluginSuno      = "www.suno.ai"
 
 	delimiter = '\u001E'
 )
