@@ -601,6 +601,10 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 	message["timestamp"] = time.Now().Format("2006-01-02T15:04:05+08:00")
 	message["requestId"] = messageId
 	message["messageId"] = messageId
+	if c.blob != nil {
+		message["imageUrl"] = "https://www.bing.com/images/blob?bcid=" + c.blob.ProcessedBlobId
+		message["originalImageUrl"] = "https://www.bing.com/images/blob?bcid=" + c.blob.BlobId
+	}
 	message["text"] = text
 
 	if conv.invocationId == 0 || model == ModelSydney {

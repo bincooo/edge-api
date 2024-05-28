@@ -147,6 +147,32 @@ func TestLinkMessages(t *testing.T) {
 	t.Log(response)
 }
 
+func Test_image(t *testing.T) {
+	options, err := edge.NewDefaultOptions(cookie, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	options.KievAuth(KievAuth, RwBf)
+	options.Proxies("socks5://127.0.0.1:7890")
+	options.Model(edge.ModelSydney)
+	chat := edge.New(options)
+	file := "/Users/bincooo/Desktop/blob.jpg"
+	kb, err := chat.LoadImage(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(kb)
+	chat.KBlob(kb)
+	partialResponse, err := chat.Reply(context.Background(), "请你使用json代码块中文描述这张图片，不必说明直接输出结果", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	text := resolve(t, partialResponse)
+	t.Log(text)
+}
+
 func resolve(t *testing.T, partialResponse chan edge.ChatResponse) string {
 	msg := ""
 	for {

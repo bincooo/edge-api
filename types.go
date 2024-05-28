@@ -40,6 +40,11 @@ type Chat struct {
 	mu sync.Mutex
 
 	session *Conversation
+	blob    *KBlob
+}
+
+func (c *Chat) KBlob(blob *KBlob) {
+	c.blob = blob
 }
 
 type KBlob struct {
@@ -112,6 +117,10 @@ type ChatResponse struct {
 type ChatError struct {
 	Action  string
 	Message error
+}
+
+func (kb KBlob) String() string {
+	return fmt.Sprintf(`{ BlobId: %s, ProcessedBlobId: %s}`, kb.BlobId, kb.ProcessedBlobId)
 }
 
 func (c ChatError) Error() string {
