@@ -127,49 +127,54 @@ func (c ChatError) Error() string {
 	return fmt.Sprintf("[edge-api::%s] %v", c.Action, c.Message)
 }
 
-func BuildMessage(messageType, text string) ChatMessage {
+func BuildMessage(messageType string, text ...string) ChatMessage {
+	message, locale := extractArgs(text)
 	switch messageType {
 	case "Internal", "CurrentWebpageContextRequest":
 	default:
 		messageType = ""
 	}
 
-	message := ChatMessage{
-		"text":   text,
+	result := ChatMessage{
+		"text":   message,
 		"author": "user",
 	}
 
 	if messageType != "" {
-		message["messageType"] = messageType
+		result["messageType"] = messageType
 	}
 
-	return message
+	result["locale"] = locale
+	return result
 }
 
-func BuildSwitchMessage(role, text string) ChatMessage {
+func BuildSwitchMessage(role string, text ...string) ChatMessage {
 	switch role {
 	case "bot":
-		return BuildBotMessage(text)
+		return BuildBotMessage(text...)
 	default:
-		return BuildUserMessage(text)
+		return BuildUserMessage(text...)
 	}
 }
 
-func BuildUserMessage(text string) ChatMessage {
+func BuildUserMessage(text ...string) ChatMessage {
+	message, locale := extractArgs(text)
 	return ChatMessage{
-		"text":         text,
+		"text":         message,
 		"author":       "user",
 		"messageId":    "local-gen-" + uuid.NewString(),
 		"requestId":    uuid.NewString(),
 		"responseType": 6,
 		"isFromCache":  true,
 		"genStream":    true,
+		"locale":       locale,
 	}
 }
 
-func BuildBotMessage(text string) ChatMessage {
+func BuildBotMessage(text ...string) ChatMessage {
+	message, locale := extractArgs(text)
 	return ChatMessage{
-		"text":          text,
+		"text":          message,
 		"author":        "bot",
 		"invocation":    "hint(Copilot_language=\"中文\")",
 		"messageId":     uuid.NewString(),
@@ -178,20 +183,35 @@ func BuildBotMessage(text string) ChatMessage {
 		"responseType":  6,
 		"isFromCache":   true,
 		"genStream":     true,
+		"locale":        locale,
 	}
 }
 
-func BuildPageMessage(text string) ChatMessage {
+func BuildPageMessage(text ...string) ChatMessage {
+	message, locale := extractArgs(text)
 	return ChatMessage{
 		"author":      "user",
-		"description": text,
+		"description": message,
 		"contextType": "WebPage",
 		"messageType": "Context",
 		"sourceName":  "histories.txt",
 		"sourceUrl":   "file:///Users/" + randStr(5) + "/histories.txt",
-		"privacy":     "NoSecondaryUse",
-		"locale":      "",
+		"locale":      locale,
 	}
+}
+
+func extractArgs(text []string) (string, string) {
+	locale := "en-US"
+	textL := len(text)
+	if textL == 0 {
+		return "", locale
+	}
+
+	if textL > 1 {
+		locale = text[1]
+	}
+
+	return text[0], locale
 }
 
 func randStr(n int) string {
