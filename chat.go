@@ -127,8 +127,39 @@ func (opts *Options) Notebook(flag bool) *Options {
 // 插件
 func (opts *Options) Plugins(plugins ...string) *Options {
 	opts.plugins = plugins
-	if slices.Contains(plugins, PluginSearch) {
-		opts.JoinOptionSets(OptionSets_Nosearchall)
+	// PluginInstacart = "www.instacart.com"
+	if slices.Contains(plugins, PluginInstacart) {
+		opts.JoinOptionSets("edgestore")
+	}
+
+	//	PluginShop      = "shop.app"
+	if slices.Contains(plugins, PluginShop) {
+		opts.JoinOptionSets("edgestore")
+	}
+
+	//	PluginKlarna    = "www.klarna.com"
+	if slices.Contains(plugins, PluginKlarna) {
+		opts.JoinOptionSets("edgestore", "B3FF9F21")
+	}
+
+	//	PluginKayak     = "www.kayak.com"
+	if slices.Contains(plugins, PluginKayak) {
+		opts.JoinOptionSets("edgestore", "B3FF9F21")
+	}
+
+	//	PluginOpenTable = "www.opentable.com"
+	if slices.Contains(plugins, PluginOpenTable) {
+		opts.JoinOptionSets("edgestore", "B3FF9F21")
+	}
+
+	//	PluginPhone     = "aka.ms"
+	if slices.Contains(plugins, PluginPhone) {
+		opts.JoinOptionSets("edgestore", "B3FF9F21")
+	}
+
+	//	PluginSuno      = "www.suno.ai"
+	if slices.Contains(plugins, PluginSuno) {
+		opts.JoinOptionSets("edgestore", "B3FF9F21")
 	}
 	return opts
 }
