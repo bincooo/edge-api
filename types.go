@@ -17,8 +17,8 @@ type Options struct {
 	notebook       bool              // 文档模式
 	compose        bool              // 混合模式 ？ 效用待测
 	composeObj     ComposeObj
-	optionSets     bool
-	plugins        []string // 插件
+	optionSets     []interface{} // 自定义参数
+	plugins        []string      // 插件
 
 	model   string // 对话模式
 	retry   int    // 重试次数

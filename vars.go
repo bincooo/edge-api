@@ -26,6 +26,11 @@ const (
 	PluginSuno      = "www.suno.ai"
 
 	delimiter = '\u001E'
+
+	//
+
+	OptionSets_Clgalileonsr = "clgalileonsr" // ???
+	OptionSets_Nosearchall  = "nosearchall"  // 不联网查询
 )
 
 //go:embed chat.json

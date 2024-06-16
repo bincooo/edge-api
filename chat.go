@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -22,10 +23,6 @@ import (
 var (
 	H = map[string]string{
 		"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0",
-	}
-
-	optionSets = []interface{}{
-		"clgalileonsr",
 	}
 )
 
@@ -130,6 +127,9 @@ func (opts *Options) Notebook(flag bool) *Options {
 // 插件
 func (opts *Options) Plugins(plugins ...string) *Options {
 	opts.plugins = plugins
+	if slices.Contains(plugins, PluginSearch) {
+		opts.JoinOptionSets(OptionSets_Nosearchall)
+	}
 	return opts
 }
 
@@ -146,8 +146,15 @@ func (opts *Options) Compose(flag bool, obj ComposeObj) *Options {
 	return opts
 }
 
-func (opts *Options) JoinOptionSets() *Options {
-	opts.optionSets = true
+func (opts *Options) JoinOptionSets(values ...string) *Options {
+	for _, value := range values {
+		contain := containFor(opts.optionSets, func(item interface{}) bool {
+			return item.(string) == value
+		})
+		if !contain {
+			opts.optionSets = append(opts.optionSets, value)
+		}
+	}
 	return opts
 }
 
@@ -547,8 +554,8 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 	}
 
 	optionsSets := hub["optionsSets"].([]interface{})
-	if c.optionSets {
-		optionsSets = append(optionsSets, optionSets...)
+	if len(c.optionSets) > 0 {
+		optionsSets = append(optionsSets, c.optionSets...)
 	}
 
 	if c.compose {
