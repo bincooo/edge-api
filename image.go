@@ -54,6 +54,7 @@ func (c *Chat) LoadImage(file string) (*KBlob, error) {
 		if e != nil {
 			return nil, &ChatError{"image", e}
 		}
+		defer response.Body.Close()
 
 		dataBytes, err = io.ReadAll(response.Body)
 		if err != nil {
@@ -161,6 +162,7 @@ func (c *Chat) uploadBase64(base64Image string) (kb *KBlob, err error) {
 	if err != nil {
 		return kb, &ChatError{"image", err}
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		return kb, &ChatError{"image", errors.New(response.Status)}

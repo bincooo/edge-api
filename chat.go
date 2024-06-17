@@ -804,6 +804,7 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
 		return nil, errors.New(r.Status)
