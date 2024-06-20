@@ -26,12 +26,14 @@ type kv = map[string]string
 
 type wsConn struct {
 	*websocket.Conn
+	resp    *http.Response
 	IsClose bool
 }
 
 func (conn *wsConn) Close() {
 	conn.IsClose = true
 	_ = conn.Conn.Close()
+	_ = conn.resp.Body.Close()
 }
 
 func (conn *wsConn) ping() {
@@ -496,7 +498,7 @@ func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 		return nil, errors.New("the conversation value was unexpectedly nil")
 	}
 
-	conn, err := emit.SocketBuilder().
+	conn, response, err := emit.SocketBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
 		URL(c.wss).
@@ -523,7 +525,7 @@ func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 		return nil, err
 	}
 
-	return &wsConn{conn, false}, nil
+	return &wsConn{conn, response, false}, nil
 }
 
 // 构建对接参数
