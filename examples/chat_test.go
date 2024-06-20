@@ -39,7 +39,7 @@ func TestPlugins(t *testing.T) {
 		Model(edge.ModelCreative).
 		Notebook(true))
 
-	r, err := chat.LoadPlugins(edge.PluginSearch, edge.PluginOpenTable)
+	r, err := chat.LoadPlugins(context.Background(), edge.PluginSearch, edge.PluginOpenTable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestNsfwMessages(t *testing.T) {
 	//	Length: "long",
 	//	Tone:   "Fond, Easy, Obedient",
 	//})
-	t.Logf("cookie登陆状态: %v", chat.IsLogin())
+	t.Logf("cookie登陆状态: %v", chat.IsLogin(context.Background()))
 	pMessages = append(pMessages, edge.BuildPageMessage(histories))
 
 	//text := "继续"
@@ -169,8 +169,8 @@ func Test_image(t *testing.T) {
 	options.Proxies("socks5://127.0.0.1:7890")
 	options.Model(edge.ModelSydney)
 	chat := edge.New(options)
-	file := "https://img2.imgtp.com/2024/05/27/X2ozWU06.jpg"
-	kb, err := chat.LoadImage(file)
+	file := "https://www.1micro.top/alist/d/blob.jpg"
+	kb, err := chat.LoadImage(context.Background(), file)
 	if err != nil {
 		t.Fatal(err)
 	}

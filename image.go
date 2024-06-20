@@ -2,9 +2,10 @@ package edge
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
+	"github.com/bincooo/emit.io"
 	"github.com/nfnt/resize"
 	"image"
 	"image/jpeg"
@@ -12,7 +13,6 @@ import (
 	"math"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 
@@ -22,10 +22,9 @@ import (
 
 const (
 	maxPixels float64 = 360000.0
-	ua                = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
 )
 
-func (c *Chat) LoadImage(file string) (*KBlob, error) {
+func (c *Chat) LoadImage(ctx context.Context, file string) (*KBlob, error) {
 	var (
 		dataBytes []byte
 		err       error
@@ -93,21 +92,21 @@ func (c *Chat) LoadImage(file string) (*KBlob, error) {
 
 	dataBytes = buf.Bytes()
 	base64Image := base64.StdEncoding.EncodeToString(dataBytes)
-	return c.uploadBase64(base64Image)
+	return c.uploadBase64(ctx, base64Image)
 }
 
 // 上传文件。 middle: 服务器地址， proxies: 本地代理， base64Image: 图片base64编码
-func (c *Chat) uploadBase64(base64Image string) (kb *KBlob, err error) {
-	body := new(bytes.Buffer)
+func (c *Chat) uploadBase64(ctx context.Context, base64Image string) (kb *KBlob, err error) {
+	buffer := new(bytes.Buffer)
 
 	if c.session == nil {
-		c.session, err = c.newConversation()
+		c.session, err = c.newConversation(nil)
 		if err != nil {
 			return nil, &ChatError{"conversation", err}
 		}
 	}
 
-	w := multipart.NewWriter(body)
+	w := multipart.NewWriter(buffer)
 	_ = w.WriteField("knowledgeRequest", `{
 			"imageInfo": {},
 			"knowledgeRequest": {
@@ -127,57 +126,37 @@ func (c *Chat) uploadBase64(base64Image string) (kb *KBlob, err error) {
 	_ = w.WriteField("imageBase64", base64Image)
 	_ = w.Close()
 
-	request, err := http.NewRequest(http.MethodPost, c.middle+"/images/kblob", body)
-	if err != nil {
-		return kb, &ChatError{"image", err}
-	}
-
-	headers := c.newHeader()
-	headers.Set("Content-Type", w.FormDataContentType())
+	builder := emit.ClientBuilder(c.client).
+		Context(ctx).
+		Proxies(c.proxies).
+		POST(c.middle+"/images/kblob").
+		Header("Content-Type", w.FormDataContentType()).
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent)
 	if strings.Contains(c.middle, "www.bing.com") {
-		headers.Set("origin", "https://www.bing.com")
-		headers.Set("referer", "https://www.bing.com/search?q=Bing+AI")
+		builder.Header("origin", "https://www.bing.com")
+		builder.Header("referer", "https://www.bing.com/search?q=Bing+AI")
 	}
 	if strings.Contains(c.middle, "copilot.microsoft.com") {
-		headers.Set("origin", "https://copilot.microsoft.com")
-		headers.Set("referer", "https://copilot.microsoft.com")
+		builder.Header("origin", "https://copilot.microsoft.com")
+		builder.Header("referer", "https://copilot.microsoft.com")
 	}
 
-	request.Header = headers
-	client := http.DefaultClient
-	if c.proxies != "" {
-		var curl *url.URL
-		curl, err = url.Parse(c.proxies)
-		if err != nil {
-			return kb, &ChatError{"proxies", err}
-		}
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(curl),
-			},
-		}
-	}
-
-	response, err := client.Do(request)
+	response, err := builder.
+		Buffer(buffer).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return kb, &ChatError{"image", err}
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		return kb, &ChatError{"image", errors.New(response.Status)}
-	}
-
-	marshal, err := io.ReadAll(response.Body)
-	if err != nil {
+	if err = emit.ToObject(response, &kb); err != nil {
 		return kb, &ChatError{"image", err}
 	}
 
-	if err = json.Unmarshal(marshal, &kb); err != nil {
-		return kb, &ChatError{"image", err}
-	}
 	if kb.ProcessedBlobId == "" {
 		kb.ProcessedBlobId = kb.BlobId
 	}
+
 	return kb, nil
 }

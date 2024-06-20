@@ -2,6 +2,7 @@ package edge
 
 import (
 	"fmt"
+	"github.com/bincooo/emit.io"
 	"github.com/google/uuid"
 	"math/rand"
 	"sync"
@@ -9,13 +10,13 @@ import (
 )
 
 type Options struct {
-	headers        map[string]string // 默认请求头
-	temperature    float32           // 温度调节：通过不同温度调节对话模式
-	kievRPSSecAuth string            //
-	rwBf           string            //
-	topicToE       bool              // topic警告是否作为错误返回
-	notebook       bool              // 文档模式
-	compose        bool              // 混合模式 ？ 效用待测
+	cookies        string  //
+	temperature    float32 // 温度调节：通过不同温度调节对话模式
+	kievRPSSecAuth string  //
+	rwBf           string  //
+	topicToE       bool    // topic警告是否作为错误返回
+	notebook       bool    // 文档模式
+	compose        bool    // 混合模式 ？ 效用待测
 	composeObj     ComposeObj
 	optionSets     []interface{} // 自定义参数
 	plugins        []string      // 插件
@@ -39,8 +40,10 @@ type Chat struct {
 	Options
 	mu sync.Mutex
 
-	session *Conversation
-	blob    *KBlob
+	session  *Conversation
+	blob     *KBlob
+	client   *emit.Session
+	connOpts *emit.ConnectOption
 }
 
 func (c *Chat) KBlob(blob *KBlob) {

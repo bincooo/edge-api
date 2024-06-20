@@ -7,11 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/RomiChan/websocket"
+	"github.com/bincooo/emit.io"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/proxy"
-	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"slices"
@@ -21,9 +19,7 @@ import (
 )
 
 var (
-	H = map[string]string{
-		"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0",
-	}
+	userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0"
 )
 
 type kv = map[string]string
@@ -83,14 +79,12 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 	}
 
 	return &Options{
-		retry:  2,
-		wss:    ws,
-		create: bu,
-		middle: middle,
-		model:  ModelCreative,
-		headers: map[string]string{
-			"Cookie": co,
-		},
+		retry:   2,
+		wss:     ws,
+		create:  bu,
+		middle:  middle,
+		model:   ModelCreative,
+		cookies: co,
 	}, nil
 }
 
@@ -196,26 +190,26 @@ func New(opts *Options) Chat {
 			Options: Options{
 				middle: "https://copilot.microsoft.com",
 			},
+			connOpts: &emit.ConnectOption{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
 		}
-	}
-	has := func(key string) bool {
-		for k, _ := range opts.headers {
-			if strings.ToLower(k) == key {
-				return true
-			}
-		}
-		return false
 	}
 
-	for k, v := range H {
-		if !has(strings.ToLower(k)) {
-			opts.headers[k] = v
-		}
-	}
 	if opts.middle == "" {
 		opts.middle = "https://copilot.microsoft.com"
 	}
-	return Chat{Options: *opts}
+
+	return Chat{
+		Options: *opts,
+		connOpts: &emit.ConnectOption{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 }
 
 func (c *Chat) GetSession() Conversation {
@@ -226,10 +220,23 @@ func (c *Chat) GetSession() Conversation {
 	}
 }
 
-func (c *Chat) IsLogin() bool {
+func (c *Chat) Client(session *emit.Session) {
+	c.client = session
+}
+
+func (c *Chat) ConnectOption(opts *emit.ConnectOption) {
+	if opts != nil && opts.TLSClientConfig == nil {
+		opts.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+	c.connOpts = opts
+}
+
+func (c *Chat) IsLogin(ctx context.Context) bool {
 	conversationId := c.GetSession().ConversationId
 	if conversationId == "" {
-		conversation, err := c.newConversation()
+		conversation, err := c.newConversation(ctx)
 		if err != nil {
 			return false
 		}
@@ -237,9 +244,9 @@ func (c *Chat) IsLogin() bool {
 		conversationId = conversation.ConversationId
 	}
 
-	slices := strings.Split(conversationId, "|")
-	if len(slices) > 1 {
-		str := slices[1]
+	slice := strings.Split(conversationId, "|")
+	if len(slice) > 1 {
+		str := slice[1]
 		return str == "BingProd"
 	}
 
@@ -265,7 +272,7 @@ func (c *Chat) IsLogin() bool {
 func (c *Chat) Reply(ctx context.Context, text string, previousMessages []ChatMessage) (chan ChatResponse, error) {
 	c.mu.Lock()
 	if c.session == nil || c.session.ConversationId == "" || c.model == ModelSydney {
-		conv, err := c.newConversation()
+		conv, err := c.newConversation(ctx)
 		if err != nil {
 			c.mu.Unlock()
 			return nil, &ChatError{"conversation", err}
@@ -273,7 +280,7 @@ func (c *Chat) Reply(ctx context.Context, text string, previousMessages []ChatMe
 		c.session = conv
 	}
 
-	h, err := c.newHub(c.model, *c.session, text, previousMessages)
+	h, err := c.newHub(ctx, c.model, *c.session, text, previousMessages)
 	if err != nil {
 		c.mu.Unlock()
 		return nil, &ChatError{"data", err}
@@ -288,7 +295,7 @@ func (c *Chat) Reply(ctx context.Context, text string, previousMessages []ChatMe
 		"type":         4,
 	}
 
-	conn, err := c.newConn()
+	conn, err := c.newConn(ctx)
 	if err != nil {
 		c.mu.Unlock()
 		return nil, &ChatError{"conn", err}
@@ -484,68 +491,43 @@ func findTopicMessage(messages []struct {
 }
 
 // 创建websocket
-func (c *Chat) newConn() (*wsConn, error) {
-	header := c.newHeader()
-	header.Add("accept-language", "en-US,en;q=0.9")
-	// header.Add("origin", "https://edgeservices.bing.com")
-	if c.middle == "" { // 有些中间转发地址会检查源并拒绝，不需要设置origin、host
-		header.Add("origin", "https://copilot.microsoft.com")
-		header.Add("host", "sydney.bing.com")
-	}
-
-	dialer := websocket.DefaultDialer
-	if c.proxies != "" {
-		purl, err := url.Parse(c.proxies)
-		if err != nil {
-			return nil, err
-		}
-
-		if purl.Scheme == "http" || purl.Scheme == "https" {
-			dialer = &websocket.Dialer{
-				Proxy:            http.ProxyURL(purl),
-				HandshakeTimeout: 45 * time.Second,
-			}
-		}
-
-		if purl.Scheme == "socks5" {
-			dialer = &websocket.Dialer{
-				NetDialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-					d, e := proxy.SOCKS5("tcp", purl.Host, nil, proxy.Direct)
-					if e != nil {
-						return nil, e
-					}
-					return d.Dial(network, addr)
-				},
-				HandshakeTimeout: 45 * time.Second,
-			}
-		}
-	}
-
+func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 	if c.session == nil {
 		return nil, errors.New("the conversation value was unexpectedly nil")
 	}
-	conn, _, err := dialer.Dial(c.wss+"?sec_access_token="+url.QueryEscape(c.session.accessToken), header)
+
+	conn, err := emit.SocketBuilder().
+		Context(ctx).
+		Proxies(c.proxies).
+		URL(c.wss).
+		Query("sec_access_token", url.QueryEscape(c.session.accessToken)).
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent).
+		Header("accept-language", "en-US,en;q=0.9").
+		Header("origin", "https://copilot.microsoft.com").
+		Header("host", "sydney.bing.com").
+		DoS(http.StatusSwitchingProtocols)
 	if err != nil {
 		return nil, err
 	}
 
-	if e := conn.WriteMessage(websocket.TextMessage, schema); e != nil {
-		return nil, e
+	if err = conn.WriteMessage(websocket.TextMessage, schema); err != nil {
+		return nil, err
 	}
 
-	if _, _, e := conn.ReadMessage(); e != nil {
-		return nil, e
+	if _, _, err = conn.ReadMessage(); err != nil {
+		return nil, err
 	}
 
-	if e := conn.WriteMessage(websocket.TextMessage, ping); e != nil {
-		return nil, e
+	if err = conn.WriteMessage(websocket.TextMessage, ping); err != nil {
+		return nil, err
 	}
 
 	return &wsConn{conn, false}, nil
 }
 
 // 构建对接参数
-func (c *Chat) newHub(model string, conv Conversation, text string, previousMessages []ChatMessage) (map[string]any, error) {
+func (c *Chat) newHub(ctx context.Context, model string, conv Conversation, text string, previousMessages []ChatMessage) (map[string]any, error) {
 	var hub map[string]any
 	if c.notebook {
 		if err := json.Unmarshal(nbkHub, &hub); err != nil {
@@ -608,7 +590,7 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 	}
 
 	hub["optionsSets"] = optionsSets
-	plugins, err := c.LoadPlugins(c.plugins...)
+	plugins, err := c.LoadPlugins(ctx, c.plugins...)
 	if err != nil {
 		return nil, err
 	}
@@ -662,44 +644,28 @@ func (c *Chat) newHub(model string, conv Conversation, text string, previousMess
 }
 
 // 删除会话
-func (c *Chat) Delete() error {
+func (c *Chat) Delete(ctx context.Context) error {
 	conversationId := c.session.ConversationId
 	if conversationId == "" {
 		return nil
 	}
 
-	request, err := http.NewRequest(http.MethodGet, c.create+"?conversationId="+c.session.ConversationId, nil)
+	response, err := emit.ClientBuilder(c.client).
+		Context(ctx).
+		Proxies(c.proxies).
+		Option(c.connOpts).
+		GET(c.create+"?conversationId="+c.session.ConversationId).
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return &ChatError{"delete", err}
 	}
+	defer response.Body.Close()
 
-	request.Header = c.newHeader()
-	client, err := newClient(c.proxies)
-	if err != nil {
-		return &ChatError{"delete", err}
-	}
-
-	r, err := client.Do(request)
-	if err != nil {
-		return &ChatError{"delete", err}
-	}
-
-	if r.StatusCode != http.StatusOK {
-		return &ChatError{"delete", errors.New(r.Status)}
-	}
-
-	marshal, err := io.ReadAll(r.Body)
-	if err != nil {
-		return &ChatError{"delete", err}
-	}
-
-	var conv Conversation
-	if err = json.Unmarshal(marshal, &conv); err != nil {
-		return &ChatError{"delete", err}
-	}
-
-	authorization := r.Header.Get("X-Sydney-Conversationsignature")
-	params := map[string]any{
+	logrus.Infof("Delete conversation [1]: %s", emit.TextResponse(response))
+	ConversationSignature := response.Header.Get("X-Sydney-Conversationsignature")
+	paload := map[string]any{
 		"conversationId": c.session.ConversationId,
 		"optionsSets": []string{
 			"autosave",
@@ -709,30 +675,34 @@ func (c *Chat) Delete() error {
 		},
 		"source": "cib",
 	}
-	requestUrl := c.middle
-	marshal, _ = json.Marshal(params)
-	if c.middle == "" || c.middle == "https://www.bing.com" {
-		requestUrl = "https://sydney.bing.com"
-	}
-	request, err = http.NewRequest(http.MethodPost, requestUrl+"/sydney/DeleteSingleConversation", bytes.NewBuffer(marshal))
-	if err != nil {
-		return &ChatError{"delete", err}
-	}
-	request.Header = c.newHeader()
-	request.Header.Set("Authorization", "Bearer "+authorization)
-	request.Header.Set("Content-Type", "application/json")
 
-	r, err = client.Do(request)
+	baseUrl := c.middle
+	if c.middle == "" || c.middle == "https://www.bing.com" {
+		baseUrl = "https://sydney.bing.com"
+	}
+
+	response, err = emit.ClientBuilder(c.client).
+		Context(ctx).
+		Proxies(c.proxies).
+		Option(c.connOpts).
+		POST(baseUrl+"/sydney/DeleteSingleConversation").
+		JHeader().
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent).
+		Header("Authorization", "Bearer "+ConversationSignature).
+		Body(paload).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return &ChatError{"delete", err}
 	}
-	_, _ = io.ReadAll(r.Body)
+	defer response.Body.Close()
+	logrus.Infof("Delete conversation [2]: %s", emit.TextResponse(response))
 	return nil
 }
 
 // 获取bing插件ID。需要包含Search，否则无效。
 // 可用插件 Shop 、Instacart、OpenTable、Klarna、Search、Kayak
-func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
+func (c *Chat) LoadPlugins(ctx context.Context, names ...string) (plugins []string, err error) {
 	if len(names) == 0 {
 		return make([]string, 0), nil
 	}
@@ -742,34 +712,22 @@ func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
 		middle = "https://www.bing.com"
 	}
 
-	request, err := http.NewRequest(http.MethodGet, middle+"/codex/plugins/available/get", nil)
+	response, err := emit.ClientBuilder(c.client).
+		Context(ctx).
+		Proxies(c.proxies).
+		Option(c.connOpts).
+		GET(middle+"/codex/plugins/available/get").
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
-	request.Header = c.newHeader()
-	client, err := newClient(c.proxies)
+	result, err := emit.ToMap(response)
 	if err != nil {
 		return nil, err
-	}
-
-	r, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if r.StatusCode != http.StatusOK {
-		return nil, errors.New(r.Status)
-	}
-
-	marshal, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result map[string]any
-	if e := json.Unmarshal(marshal, &result); e != nil {
-		return nil, e
 	}
 
 	if result["IsSuccess"] == true {
@@ -788,42 +746,31 @@ func (c *Chat) LoadPlugins(names ...string) (plugins []string, err error) {
 }
 
 // 创建会话
-func (c *Chat) newConversation() (*Conversation, error) {
-	request, err := http.NewRequest(http.MethodGet, c.create+"?bundleVersion="+Version, nil)
+func (c *Chat) newConversation(ctx context.Context) (*Conversation, error) {
+	response, err := emit.ClientBuilder(c.client).
+		Context(ctx).
+		Proxies(c.proxies).
+		Option(c.connOpts).
+		GET(c.create).
+		Query("bundleVersion", Version).
+		Header("cookie", c.extCookies()).
+		Header("user-agent", userAgent).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return nil, err
 	}
-
-	request.Header = c.newHeader()
-	client, err := newClient(c.proxies)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Body.Close()
-
-	if r.StatusCode != http.StatusOK {
-		return nil, errors.New(r.Status)
-	}
-
-	marshal, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
+	defer response.Body.Close()
 
 	var conv Conversation
-	if e := json.Unmarshal(marshal, &conv); e != nil {
-		return nil, e
+	if err = emit.ToObject(response, &conv); err != nil {
+		return nil, err
 	}
 
 	conv.traceId = strings.ReplaceAll(uuid.NewString(), "-", "")
+	conv.accessToken = response.Header.Get("X-Sydney-Encryptedconversationsignature")
 	conv.invocationId = 0
-	conv.accessToken = r.Header.Get("X-Sydney-Encryptedconversationsignature")
-	cookies := r.Header.Values("Set-Cookie")
+
+	cookies := response.Header.Values("Set-Cookie")
 	for _, cookie := range cookies {
 		if cookie[:5] == "MUID=" {
 			if muId := strings.Split(cookie, "; ")[0][5:]; muId != "" {
@@ -836,69 +783,21 @@ func (c *Chat) newConversation() (*Conversation, error) {
 	return &conv, nil
 }
 
-func newClient(proxies string) (*http.Client, error) {
-	client := http.DefaultClient
-	if proxies != "" {
-		proxiesUrl, err := url.Parse(proxies)
-		if err != nil {
-			return nil, err
-		}
-
-		if proxiesUrl.Scheme == "http" || proxiesUrl.Scheme == "https" {
-			client = &http.Client{
-				Transport: &http.Transport{
-					Proxy: http.ProxyURL(proxiesUrl),
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
-					},
-				},
-			}
-		}
-
-		// socks5://127.0.0.1:7890
-		if proxiesUrl.Scheme == "socks5" {
-			client = &http.Client{
-				Transport: &http.Transport{
-					DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-						dialer, e := proxy.SOCKS5("tcp", proxiesUrl.Host, nil, proxy.Direct)
-						if e != nil {
-							return nil, e
-						}
-						return dialer.Dial(network, addr)
-					},
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
-					},
-				},
-			}
-		}
+func (c *Chat) extCookies() (cookies string) {
+	cookies = c.cookies
+	if cookies == "_U=" {
+		cookies += emit.RandIP()
 	}
-
-	return client, nil
-}
-
-func (c *Chat) newHeader() http.Header {
-	var h = make(http.Header)
-	for k, v := range c.headers {
-		if strings.ToLower(k) == "cookie" {
-			if v == "_U=" {
-				v = ""
-			}
-			if c.kievRPSSecAuth != "" && !strings.Contains(v, "KievRPSSecAuth=") {
-				v += "; KievRPSSecAuth=" + c.kievRPSSecAuth
-			}
-			if c.rwBf != "" && !strings.Contains(v, "_RwBf=") {
-				v += "; _RwBf=" + c.rwBf
-			}
-			if c.muId != "" {
-				v += "; MUID=" + c.muId
-			}
-		}
-		if v != "" {
-			h.Set(k, v)
-		}
+	if c.kievRPSSecAuth != "" && !strings.Contains(cookies, "KievRPSSecAuth=") {
+		cookies += "; KievRPSSecAuth=" + c.kievRPSSecAuth
 	}
-	return h
+	if c.rwBf != "" && !strings.Contains(cookies, "_RwBf=") {
+		cookies += "; _RwBf=" + c.rwBf
+	}
+	if c.muId != "" {
+		cookies += "; MUID=" + c.muId
+	}
+	return
 }
 
 func del[T any](slice []T, condition func(item T) bool) []T {
