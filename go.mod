@@ -4,7 +4,7 @@ go 1.21.6
 
 require (
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
-	github.com/bincooo/emit.io v0.0.0-20240620154444-cb9a3cdf1265
+	github.com/bincooo/emit.io v0.0.0-20240620163021-92df8c488a60
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
