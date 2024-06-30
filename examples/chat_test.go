@@ -51,7 +51,7 @@ func TestSearchMessages(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	options.KievAuth(KievAuth, RwBf).Notebook(true)
+	options.KievAuth(KievAuth, RwBf) //.Notebook(true)
 	// Sydney 模式需要自行维护历史对话
 	chat := edge.New(options.
 		Proxies("socks5://127.0.0.1:7890").
@@ -59,7 +59,7 @@ func TestSearchMessages(t *testing.T) {
 		Temperature(.9).
 		TopicToE(true))
 	chat.Plugins(edge.PluginSearch)
-	response, err := chat.Reply(context.Background(), "你对gemini1.5 flush版本怎么看", pMessages)
+	response, err := chat.Reply(context.Background(), "画一个猫耳少女", pMessages)
 	if err != nil {
 		t.Fatal(err)
 	}

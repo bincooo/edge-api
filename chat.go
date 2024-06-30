@@ -68,6 +68,9 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 		if u.Scheme == "http" {
 			ws = "ws://" + u.Host + u.Path + "/sydney/ChatHub"
 		} else {
+			if u.Host == "www.bing.com" {
+				u.Host = "sydney.bing.com"
+			}
 			ws = "wss://" + u.Host + u.Path + "/sydney/ChatHub"
 		}
 	} else {
@@ -498,6 +501,16 @@ func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 		return nil, errors.New("the conversation value was unexpectedly nil")
 	}
 
+	u, err := url.Parse(c.middle)
+	if err != nil {
+		return nil, err
+	}
+
+	host := u.Host
+	if host == "www.bing.com" || host == "copilot.microsoft.com" {
+		host = "sydney.bing.com"
+	}
+
 	conn, response, err := emit.SocketBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
@@ -506,8 +519,8 @@ func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 		Header("cookie", c.extCookies()).
 		Header("user-agent", userAgent).
 		Header("accept-language", "en-US,en;q=0.9").
-		Header("origin", "https://copilot.microsoft.com").
-		Header("host", "sydney.bing.com").
+		Header("origin", u.Scheme+"://"+u.Host).
+		Header("host", host).
 		DoS(http.StatusSwitchingProtocols)
 	if err != nil {
 		return nil, err
