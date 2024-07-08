@@ -20,6 +20,9 @@ const (
 //go:embed histories.txt
 var histories string
 
+//go:embed content.txt
+var content string
+
 // 前置引导
 var pMessages = []edge.ChatMessage{
 	edge.BuildUserMessage("你好"),
@@ -102,6 +105,35 @@ func TestClassification(t *testing.T) {
 	response = resolve(t, partialResponse)
 
 	t.Log("response: ", response)
+}
+
+func TestEdgesvcMessages(t *testing.T) {
+	options, err := edge.NewDefaultOptions(cookie, "https://edgeservices.bing.com/edgesvc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	options.KievAuth(KievAuth, RwBf).Notebook(true)
+	// Sydney 模式需要自行维护历史对话
+	chat := edge.New(options.
+		Proxies("http://127.0.0.1:7890").
+		Model(edge.ModelSydney).
+		Temperature(.9).
+		TopicToE(true))
+	//chat.Compose(true, edge.ComposeObj{
+	//	Fmt:    "paragraph",
+	//	Length: "long",
+	//	Tone:   "Fond, Easy, Obedient",
+	//})
+	t.Logf("cookie登陆状态: %v", chat.IsLogin(context.Background()))
+	text := content
+
+	fmt.Println("You: ", text)
+	partialResponse, err := chat.Reply(context.Background(), text, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := resolve(t, partialResponse)
+	t.Log(response)
 }
 
 func TestNsfwMessages(t *testing.T) {

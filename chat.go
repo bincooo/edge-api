@@ -68,8 +68,9 @@ func NewDefaultOptions(cookie, middle string) (*Options, error) {
 		if u.Scheme == "http" {
 			ws = "ws://" + u.Host + u.Path + "/sydney/ChatHub"
 		} else {
-			if u.Host == "www.bing.com" {
+			if strings.Contains(u.Host, ".bing.com") || strings.Contains(u.Host, ".microsoft.com") {
 				u.Host = "sydney.bing.com"
+				u.Path = ""
 			}
 			ws = "wss://" + u.Host + u.Path + "/sydney/ChatHub"
 		}
@@ -507,7 +508,7 @@ func (c *Chat) newConn(ctx context.Context) (*wsConn, error) {
 	}
 
 	host := u.Host
-	if host == "www.bing.com" || host == "copilot.microsoft.com" {
+	if strings.Contains(host, ".bing.com") || strings.Contains(host, ".microsoft.com") {
 		host = "sydney.bing.com"
 	}
 
