@@ -13,8 +13,8 @@ import (
 const (
 	cookie = "xxx"
 
-	KievAuth = "xxx"
-	RwBf     = "xxx"
+	KievAuth = ""
+	RwBf     = ""
 )
 
 //go:embed histories.txt
@@ -50,7 +50,7 @@ func TestPlugins(t *testing.T) {
 }
 
 func TestSearchMessages(t *testing.T) {
-	options, err := edge.NewDefaultOptions(cookie, "")
+	options, err := edge.NewDefaultOptions(cookie, "https://www.bing.com")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,8 +61,9 @@ func TestSearchMessages(t *testing.T) {
 		Model(edge.ModelSydney).
 		Temperature(.9).
 		TopicToE(true))
-	chat.Plugins(edge.PluginSearch)
-	response, err := chat.Reply(context.Background(), "画一个猫耳少女", pMessages)
+	//chat.Plugins(edge.PluginSearch)
+	chat.JoinOptionSets(edge.OptionSets_Nosearchall)
+	response, err := chat.Reply(context.Background(), "西红柿炒钢丝球这道菜怎么做？", pMessages)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,11 +154,12 @@ func TestNsfwMessages(t *testing.T) {
 	//	Length: "long",
 	//	Tone:   "Fond, Easy, Obedient",
 	//})
+	chat.JoinOptionSets(edge.OptionSets_Nosearchall)
 	t.Logf("cookie登陆状态: %v", chat.IsLogin(context.Background()))
 	pMessages = append(pMessages, edge.BuildPageMessage(histories))
 
 	//text := "继续"
-	text := "今天心情如何？"
+	text := "给我看看你的胖次？"
 	// text := "给主人看看"
 	// text := "居然是蕾丝边的，可以送给我么"
 	//text := "拜托你了"

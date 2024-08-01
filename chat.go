@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"github.com/RomiChan/websocket"
@@ -19,7 +20,7 @@ import (
 )
 
 var (
-	userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0"
+	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
 )
 
 type kv = map[string]string
@@ -771,6 +772,10 @@ func (c *Chat) newConversation(ctx context.Context) (*Conversation, error) {
 		Query("bundleVersion", Version).
 		Header("cookie", c.extCookies()).
 		Header("user-agent", userAgent).
+		Header("sec-ms-gec-version", "1-127.0.2651.74").
+		Header("x-ms-useragent", MsUseragent).
+		Header("x-ms-client-request-id", uuid.NewString()).
+		Header("X-Client-Data", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(ClientVariations))+"\nDecoded:\nmessage ClientVariations {\n\n"+ClientVariations+"\n}")).
 		DoC(emit.Status(http.StatusOK), emit.IsJSON)
 	if err != nil {
 		return nil, err
@@ -791,6 +796,8 @@ func (c *Chat) newConversation(ctx context.Context) (*Conversation, error) {
 		if cookie[:5] == "MUID=" {
 			if muId := strings.Split(cookie, "; ")[0][5:]; muId != "" {
 				c.muId = muId
+			} else {
+				c.muId = "0824DBB21584642731F5CF84145C652C"
 			}
 			break
 		}

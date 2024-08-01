@@ -39,7 +39,11 @@ var chatHub []byte
 //go:embed notebook.json
 var nbkHub []byte
 
-var Version = "1.1742.1"
+var (
+	Version          = "1.1795.0"
+	ClientVariations = `{"1":"2","10":"\"wl3/eFdPHVjh26yq6lyEGDFD7ChRSL6SgHhHlz37ktk=\"","2":"1","3":"1","4":"-6559815396923895929","5":"\"a+SsB8KQ53HN8ZX+ygdVSLaJkJhXVbVjzsDmbCHY3fM=\"","6":"stable","7":"648540061697","9":""}`
+	MsUseragent      = "azsdk-js-api-client-factory/1.0.0-beta.1 core-rest-pipeline/1.15.1 OS/macOS"
+)
 
 var (
 	schema = []byte{123, 34, 112, 114, 111, 116, 111, 99, 111, 108, 34, 58, 34, 106, 115, 111, 110, 34, 44, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 49, 125, 30}
