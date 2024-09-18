@@ -40,10 +40,9 @@ type Chat struct {
 	Options
 	mu sync.Mutex
 
-	session  *Conversation
-	blob     *KBlob
-	client   *emit.Session
-	connOpts *emit.ConnectOption
+	session *Conversation
+	blob    *KBlob
+	client  *emit.Session
 }
 
 func (c *Chat) KBlob(blob *KBlob) {

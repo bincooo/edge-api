@@ -3,7 +3,6 @@ package edge
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -197,11 +196,6 @@ func New(opts *Options) Chat {
 			Options: Options{
 				middle: "https://copilot.microsoft.com",
 			},
-			connOpts: &emit.ConnectOption{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
 		}
 	}
 
@@ -211,11 +205,6 @@ func New(opts *Options) Chat {
 
 	return Chat{
 		Options: *opts,
-		connOpts: &emit.ConnectOption{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
 	}
 }
 
@@ -229,15 +218,6 @@ func (c *Chat) GetSession() Conversation {
 
 func (c *Chat) Client(session *emit.Session) {
 	c.client = session
-}
-
-func (c *Chat) ConnectOption(opts *emit.ConnectOption) {
-	if opts != nil && opts.TLSClientConfig == nil {
-		opts.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
-	}
-	c.connOpts = opts
 }
 
 func (c *Chat) IsLogin(ctx context.Context) bool {
@@ -670,7 +650,6 @@ func (c *Chat) Delete(ctx context.Context) error {
 	response, err := emit.ClientBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
-		Option(c.connOpts).
 		GET(c.create+"?conversationId="+c.session.ConversationId).
 		Header("cookie", c.extCookies()).
 		Header("user-agent", userAgent).
@@ -701,7 +680,6 @@ func (c *Chat) Delete(ctx context.Context) error {
 	response, err = emit.ClientBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
-		Option(c.connOpts).
 		POST(baseUrl+"/sydney/DeleteSingleConversation").
 		JHeader().
 		Header("cookie", c.extCookies()).
@@ -732,7 +710,6 @@ func (c *Chat) LoadPlugins(ctx context.Context, names ...string) (plugins []stri
 	response, err := emit.ClientBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
-		Option(c.connOpts).
 		GET(middle+"/codex/plugins/available/get").
 		Header("cookie", c.extCookies()).
 		Header("user-agent", userAgent).
@@ -767,7 +744,6 @@ func (c *Chat) newConversation(ctx context.Context) (*Conversation, error) {
 	response, err := emit.ClientBuilder(c.client).
 		Context(ctx).
 		Proxies(c.proxies).
-		Option(c.connOpts).
 		GET(c.create).
 		Query("bundleVersion", Version).
 		Header("cookie", c.extCookies()).
