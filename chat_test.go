@@ -12,6 +12,8 @@ import (
 var (
 	//go:embed message.txt
 	query string
+
+	accessToken = "xxx"
 )
 
 func TestConversation(t *testing.T) {
@@ -20,7 +22,7 @@ func TestConversation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conversationId, err := CreateConversation(session, context.TODO())
+	conversationId, err := CreateConversation(session, context.TODO(), accessToken)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,12 +36,12 @@ func TestChat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conversationId, err := CreateConversation(session, context.TODO())
+	conversationId, err := CreateConversation(session, context.TODO(), accessToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	message, err := Chat(session, context.TODO(), conversationId, query)
+	message, err := Chat(session, context.TODO(), accessToken, conversationId, query)
 	if err != nil {
 		t.Fatal(err)
 	}

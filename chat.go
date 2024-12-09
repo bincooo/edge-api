@@ -29,13 +29,14 @@ type Msg struct {
 	} `json:"content"`
 }
 
-func CreateConversation(session *emit.Session, ctx context.Context) (conversationId string, err error) {
+func CreateConversation(session *emit.Session, ctx context.Context, accessToken string) (conversationId string, err error) {
 	response, err := emit.ClientBuilder(session).
 		Context(ctx).
 		POST("https://copilot.microsoft.com/c/api/conversations").
 		Header("accept-language", "en-US,en;q=0.9").
 		Header("origin", "https://copilot.microsoft.com").
 		Header("user-agent", userAgent).
+		Header(elseOf(accessToken != "", "Authorization"), "Bearer "+accessToken).
 		Header("referer", "https://copilot.microsoft.com/chats").
 		Header("x-search-uilang", "en-us").
 		DoC(emit.Status(http.StatusOK), emit.IsJSON)
@@ -53,11 +54,12 @@ func CreateConversation(session *emit.Session, ctx context.Context) (conversatio
 	return
 }
 
-func Chat(session *emit.Session, ctx context.Context, conversationId, query string) (message chan []byte, err error) {
+func Chat(session *emit.Session, ctx context.Context, accessToken, conversationId, query string) (message chan []byte, err error) {
 	conn, _, err := emit.SocketBuilder(session).
 		Context(ctx).
 		URL("wss://copilot.microsoft.com/c/api/chat").
 		Query("api-version", "2").
+		Query(elseOf(accessToken != "", "accessToken"), accessToken).
 		Header("origin", "https://copilot.microsoft.com").
 		Header("user-agent", userAgent).
 		DoS(http.StatusSwitchingProtocols)
@@ -136,4 +138,11 @@ func messageBuffer(magic byte, o interface{}) (buffer []byte) {
 		buffer = append(buffer, hex...)
 	}
 	return
+}
+
+func elseOf(condition bool, value string) string {
+	if condition {
+		return value
+	}
+	return ""
 }
