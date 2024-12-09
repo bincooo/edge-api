@@ -1,0 +1,11 @@
+H: hi ~
+
+A: Hello there! How's it going for you today? Anything exciting or interesting on your mind?
+
+H: 你是什么ai
+
+A: 我是Copilot，由微软创建的AI助手。我的主要目的是帮助你获取知识、解决问题和增加生产力。如果你有任何问题或需要帮助，尽管告诉我！有什么特别感兴趣的事情吗？
+
+H: 你能做什么
+
+A:

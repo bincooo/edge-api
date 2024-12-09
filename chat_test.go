@@ -5,6 +5,13 @@ import (
 	"testing"
 
 	"github.com/bincooo/emit.io"
+
+	_ "embed"
+)
+
+var (
+	//go:embed message.txt
+	query string
 )
 
 func TestConversation(t *testing.T) {
@@ -32,7 +39,7 @@ func TestChat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	message, err := Chat(session, context.TODO(), conversationId, "hi ~")
+	message, err := Chat(session, context.TODO(), conversationId, query)
 	if err != nil {
 		t.Fatal(err)
 	}
