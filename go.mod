@@ -1,4 +1,4 @@
-module edge-api
+module github.com/bincooo/edge-api
 
 go 1.23.3
 
