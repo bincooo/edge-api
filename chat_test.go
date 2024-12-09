@@ -49,7 +49,7 @@ func TestChat(t *testing.T) {
 	for {
 		chunk, ok := <-message
 		if !ok {
-			return
+			break
 		}
 
 		if chunk[0] == 1 {
@@ -58,5 +58,10 @@ func TestChat(t *testing.T) {
 		}
 
 		t.Logf("%s", chunk[1:])
+	}
+
+	err = DeleteConversation(session, context.TODO(), conversationId, accessToken)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

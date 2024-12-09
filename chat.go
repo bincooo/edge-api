@@ -29,6 +29,24 @@ type Msg struct {
 	} `json:"content"`
 }
 
+func DeleteConversation(session *emit.Session, ctx context.Context, conversationId, accessToken string) (err error) {
+	response, err := emit.ClientBuilder(session).
+		Context(ctx).
+		DELETE("https://copilot.microsoft.com/c/api/conversations/"+conversationId).
+		Header("accept-language", "en-US,en;q=0.9").
+		Header("origin", "https://copilot.microsoft.com").
+		Header("user-agent", userAgent).
+		Header(elseOf(accessToken != "", "Authorization"), "Bearer "+accessToken).
+		Header("referer", "https://copilot.microsoft.com/chats").
+		Header("x-search-uilang", "en-us").
+		DoS(http.StatusOK)
+	if err != nil {
+		return
+	}
+	response.Body.Close()
+	return
+}
+
 func CreateConversation(session *emit.Session, ctx context.Context, accessToken string) (conversationId string, err error) {
 	response, err := emit.ClientBuilder(session).
 		Context(ctx).
