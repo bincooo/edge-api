@@ -2,10 +2,13 @@ module github.com/bincooo/edge-api
 
 go 1.23.3
 
-require github.com/bincooo/emit.io v1.0.1-0.20241206102606-d234e60afcc9
+require (
+	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
+	github.com/bincooo/emit.io v1.0.1-0.20241206102606-d234e60afcc9
+	github.com/google/uuid v1.3.0
+)
 
 require (
-	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bogdanfinn/fhttp v0.5.28 // indirect
 	github.com/bogdanfinn/tls-client v1.7.7 // indirect

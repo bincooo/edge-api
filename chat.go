@@ -6,10 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
+	"mime/multipart"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/RomiChan/websocket"
 	"github.com/bincooo/emit.io"
+	"github.com/google/uuid"
 )
 
 var (
@@ -38,6 +43,66 @@ type Msg struct {
 			PageUrl     string `json:"pageUrl"`
 		} `json:"edge"`
 	} `json:"context"`
+}
+
+func RefreshToken(session *emit.Session, ctx context.Context, token string) (accessToken string, err error) {
+	split := strings.Split(token, "|")
+	if len(split) < 3 {
+		err = fmt.Errorf("refresh token is unauthorized")
+		return
+	}
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	_ = writer.WriteField("client_id", split[0])
+	_ = writer.WriteField("redirect_uri", "https://copilot.microsoft.com")
+	_ = writer.WriteField("scope", split[1]+"/ChatAI.ReadWrite openid profile offline_access")
+	_ = writer.WriteField("grant_type", "refresh_token")
+	_ = writer.WriteField("client_info", "1")
+	_ = writer.WriteField("x-client-SKU", "msal.js.browser")
+	_ = writer.WriteField("x-client-VER", "3.26.1")
+	_ = writer.WriteField("x-ms-lib-capability", "retry-after, h429")
+	_ = writer.WriteField("x-client-current-telemetry", "5|61,0,,,|,")
+	_ = writer.WriteField("x-client-last-telemetry", "5|40|||0,0")
+	_ = writer.WriteField("client-request-id", uuid.NewString())
+	_ = writer.WriteField("refresh_token", strings.Join(split[2:], "|"))
+	_ = writer.WriteField("X-AnchorMailbox", "Oid:00000000-0000-0000-591d-"+hex(12)+"@"+uuid.NewString())
+	err = writer.Close()
+	if err != nil {
+		return
+	}
+
+	response, err := emit.ClientBuilder(session).
+		Context(ctx).
+		POST("https://login.microsoftonline.com/common/oauth2/v2.0/token").
+		Header("accept-language", "en-US,en;q=0.9").
+		Header("content-type", writer.FormDataContentType()).
+		Header("origin", "https://copilot.microsoft.com").
+		Header("referer", "https://copilot.microsoft.com/").
+		Header("user-agent", userAgent).
+		Header("x-edge-shopping-flag", "1").
+		Buffer(body).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
+	if err != nil {
+		return
+	}
+
+	obj, err := emit.ToMap(response)
+	if err != nil {
+		return
+	}
+
+	if data, ok := obj["token_type"]; !ok || data != "Bearer" {
+		err = fmt.Errorf("refresh failed")
+		return
+	}
+
+	if data, ok := obj["scope"]; !ok || !strings.HasSuffix(data.(string), "/ChatAI.ReadWrite") {
+		err = fmt.Errorf("refresh failed")
+		return
+	}
+
+	accessToken, _ = obj["access_token"].(string)
+	return
 }
 
 func DeleteConversation(session *emit.Session, ctx context.Context, conversationId, accessToken string) (err error) {
@@ -222,6 +287,16 @@ func messageBuffer(magic byte, o interface{}) (buffer []byte) {
 		buffer = append(buffer, hex...)
 	}
 	return
+}
+
+func hex(n int) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = runes[r.Intn(len(runes))]
+	}
+	return string(b)
 }
 
 func elseOf(condition bool, value string) string {
