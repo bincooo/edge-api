@@ -102,6 +102,7 @@ func RefreshToken(session *emit.Session, ctx context.Context, token string) (acc
 	}
 
 	accessToken, _ = obj["access_token"].(string)
+	accessToken = obj["refresh_token"].(string) + "|" + accessToken
 	return
 }
 
