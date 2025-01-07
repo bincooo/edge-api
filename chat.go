@@ -31,7 +31,8 @@ type Msg struct {
 	ConversationId string `json:"conversationId"`
 	Content        []struct {
 		Type string `json:"type"`
-		Text string `json:"text"`
+		Text string `json:"text,omitempty"`
+		Url  string `json:"url,omitempty"`
 	} `json:"content"`
 	Context *struct {
 		Edge *struct {
@@ -85,7 +86,33 @@ func CreateConversation(session *emit.Session, ctx context.Context, accessToken 
 	return
 }
 
-func Chat(session *emit.Session, ctx context.Context, accessToken, conversationId, challenge, file, query string) (message chan []byte, err error) {
+func Attachments(session *emit.Session, ctx context.Context, buffer []byte, accessToken string) (uri string, err error) {
+	response, err := emit.ClientBuilder(session).
+		Context(ctx).
+		POST("https://copilot.microsoft.com/c/api/attachments").
+		Header("accept-language", "en-US,en;q=0.9").
+		Header("origin", "https://copilot.microsoft.com").
+		Header("user-agent", userAgent).
+		Header(elseOf(accessToken != "", "Authorization"), "Bearer "+accessToken).
+		Header("referer", "https://copilot.microsoft.com/chats").
+		Header("x-search-uilang", "en-us").
+		Header("content-type", "image/png").
+		Bytes(buffer).
+		DoC(emit.Status(http.StatusOK), emit.IsJSON)
+	if err != nil {
+		return
+	}
+
+	obj, err := emit.ToMap(response)
+	if err != nil {
+		return
+	}
+
+	uri, _ = obj["url"].(string)
+	return
+}
+
+func Chat(session *emit.Session, ctx context.Context, accessToken, conversationId, challenge, file, query string, attr string) (message chan []byte, err error) {
 	conn, _, err := emit.SocketBuilder(session).
 		Context(ctx).
 		URL("wss://copilot.microsoft.com/c/api/chat").
@@ -106,14 +133,31 @@ func Chat(session *emit.Session, ctx context.Context, accessToken, conversationI
 		return
 	}
 
+	var content []struct {
+		Type string `json:"type"`
+		Text string `json:"text,omitempty"`
+		Url  string `json:"url,omitempty"`
+	}
+
+	if attr != "" {
+		content = append(content, struct {
+			Type string `json:"type"`
+			Text string `json:"text,omitempty"`
+			Url  string `json:"url,omitempty"`
+		}{Type: "image", Url: attr})
+	}
+
+	content = append(content, struct {
+		Type string `json:"type"`
+		Text string `json:"text,omitempty"`
+		Url  string `json:"url,omitempty"`
+	}{Type: "text", Text: query})
+
 	request := Msg{
 		Event:          "send",
 		Mode:           "chat",
 		ConversationId: conversationId,
-		Content: []struct {
-			Type string `json:"type"`
-			Text string `json:"text"`
-		}{{Type: "text", Text: query}},
+		Content:        content,
 		Context: &struct {
 			Edge *struct {
 				PageTitle   string `json:"pageTitle"`
