@@ -184,17 +184,12 @@ func refreshToken0(session *emit.Session, ctx context.Context, rid, clientId, sc
 	return
 }
 
-func RefreshToken(session *emit.Session, ctx context.Context, token string) (accessToken string, err error) {
-	split := strings.Split(token, "|")
-	if len(split) < 3 {
-		err = fmt.Errorf("refresh token is unauthorized")
-		return
-	}
+func RefreshToken(session *emit.Session, ctx context.Context, clientId, scopeId, refreshToken string) (accessToken string, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	_ = writer.WriteField("client_id", split[0])
+	_ = writer.WriteField("client_id", clientId)
 	_ = writer.WriteField("redirect_uri", "https://copilot.microsoft.com")
-	_ = writer.WriteField("scope", split[1]+"/ChatAI.ReadWrite openid profile offline_access")
+	_ = writer.WriteField("scope", scopeId+"/ChatAI.ReadWrite openid profile offline_access")
 	_ = writer.WriteField("grant_type", "refresh_token")
 	_ = writer.WriteField("client_info", "1")
 	_ = writer.WriteField("x-client-SKU", "msal.js.browser")
@@ -203,7 +198,7 @@ func RefreshToken(session *emit.Session, ctx context.Context, token string) (acc
 	_ = writer.WriteField("x-client-current-telemetry", "5|61,0,,,|,")
 	_ = writer.WriteField("x-client-last-telemetry", "5|40|||0,0")
 	_ = writer.WriteField("client-request-id", uuid.NewString())
-	_ = writer.WriteField("refresh_token", strings.Join(split[2:], "|"))
+	_ = writer.WriteField("refresh_token", refreshToken)
 	_ = writer.WriteField("X-AnchorMailbox", "Oid:00000000-0000-0000-591d-"+randString(12)+"@"+uuid.NewString())
 	err = writer.Close()
 	if err != nil {
