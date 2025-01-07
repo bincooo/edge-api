@@ -18,7 +18,7 @@ var (
 )
 
 func TestConversation(t *testing.T) {
-	session, err := emit.NewSession("http://127.0.0.1:7890", nil)
+	session, err := emit.NewSession("http://127.0.0.1:7890", false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestConversation(t *testing.T) {
 }
 
 func TestChat(t *testing.T) {
-	session, err := emit.NewSession("http://127.0.0.1:7890", nil)
+	session, err := emit.NewSession("http://127.0.0.1:7890", false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

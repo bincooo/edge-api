@@ -4,14 +4,15 @@ go 1.23.3
 
 require (
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
-	github.com/bincooo/emit.io v1.0.1-0.20241206102606-d234e60afcc9
+	github.com/bincooo/emit.io v1.0.1-0.20250107024658-671bcfad17e9
+	github.com/bogdanfinn/tls-client v1.7.7
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.3.0
 )
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bogdanfinn/fhttp v0.5.28 // indirect
-	github.com/bogdanfinn/tls-client v1.7.7 // indirect
 	github.com/bogdanfinn/utls v1.6.1 // indirect
 	github.com/cloudflare/circl v1.3.8 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
