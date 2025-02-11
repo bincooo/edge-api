@@ -18,7 +18,7 @@ var (
 	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1.1 Safari/605.1.15"
 
 	// 懒得定义了
-	H  = []byte("{\"event\":\"setOptions\",\"ads\":{\"supportedTypes\":[\"text\",\"propertyPromotion\",\"tourActivity\",\"product\",\"multimedia\"]}}")
+	H  = []byte("{\"event\":\"setOptions\",\"supportedCards\":[\"image\"],\"ads\":{\"supportedTypes\":[\"multimedia\",\"product\",\"tourActivity\",\"propertyPromotion\",\"text\"]}}")
 	D  = []byte("{\"event\":\"done\"")
 	E  = []byte("{\"event\":\"error\"")
 	C  = []byte("{\"event\":\"challenge\"")
@@ -112,7 +112,7 @@ func Attachments(session *emit.Session, ctx context.Context, buffer []byte, acce
 	return
 }
 
-func Chat(session *emit.Session, ctx context.Context, accessToken, conversationId, challenge, file, query string, attr string) (message chan []byte, err error) {
+func Chat(session *emit.Session, ctx context.Context, accessToken, conversationId, challenge, file, query string, attr string, t byte) (message chan []byte, err error) {
 	conn, _, err := emit.SocketBuilder(session).
 		Context(ctx).
 		URL("wss://copilot.microsoft.com/c/api/chat").
@@ -155,7 +155,7 @@ func Chat(session *emit.Session, ctx context.Context, accessToken, conversationI
 
 	request := Msg{
 		Event:          "send",
-		Mode:           "chat",
+		Mode:           elseOfT(t == 0, "chat", "reasoning"),
 		ConversationId: conversationId,
 		Content:        content,
 		Context: &struct {
@@ -278,6 +278,13 @@ func randString(n int) string {
 		b[i] = runes[r.Intn(len(runes))]
 	}
 	return string(b)
+}
+
+func elseOfT[T any](condition bool, t1, t2 T) T {
+	if condition {
+		return t1
+	}
+	return t2
 }
 
 func elseOf(condition bool, value string) string {

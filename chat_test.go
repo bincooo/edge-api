@@ -76,7 +76,7 @@ func TestChat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	message, err := Chat(session, context.TODO(), strings.Split(accessToken, "|")[1], conversationId, "", "", "图里写了什么？", uri)
+	message, err := Chat(session, context.TODO(), strings.Split(accessToken, "|")[1], conversationId, "", "", "图里写了什么？", uri, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
